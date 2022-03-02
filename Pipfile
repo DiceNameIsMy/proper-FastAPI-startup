@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = "*"
+sqlalchemy = "*"
+pydantic = "*"
+alembic = "*"
+psycopg2-binary = "*"
+pytest = "*"
+
+[dev-packages]
+flake8 = "*"
+black = "*"
+pre-commit = "*"
+
+[requires]
+python_version = "3.10"
+
+[scripts]
+makemigrations = "bash -c 'docker-compose up -d pg && cd src && alembic upgrade head && alembic revision --autogenerate && cd .. && docker-compose down'"
+
+local = "docker-compose"
+local-dev-server = "bash -c 'docker-compose up -d pg && cd src && pipenv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload'"
+
+stage = "docker-compose -f docker-compose.stage.yml"
