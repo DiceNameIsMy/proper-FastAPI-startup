@@ -1,7 +1,7 @@
 {
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": [
-        "--line-length", "79",
+        "--line-length", "89",
     ],
     "python.linting.flake8Enabled": true,
 }

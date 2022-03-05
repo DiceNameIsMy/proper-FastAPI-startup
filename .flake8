@@ -1,5 +1,6 @@
 [flake8]
 ignore = D203
+max-line-length = 89
 exclude =
     .git,
     __pycache__,
