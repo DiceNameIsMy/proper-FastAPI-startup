@@ -30,19 +30,18 @@ class DBSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    project_name: str = Field("proper-FastAPI-startup", const=True)
+
     host: str = "localhost"
     port: int = 8000
     secret_key: str = "secret"
-    jwt_algorithm: str = Field("HS256", const=True)
-    # 3 days
-    access_token_expires_minutes: int = Field(60 * 60 * 24 * 3, const=True)
-
     allowed_origins_str: str = "*"
+
+    jwt_algorithm: str = Field("HS256", const=True)
+    access_token_expires_minutes: int = Field(60 * 60 * 24 * 3, const=True)
 
     @property
     def allowed_origins(self) -> list[str]:
-        if self.allowed_origins_str == "*":
-            return self.allowed_origins_str
         return [url for url in self.allowed_origins_str.split("|")]
 
     db: DBSettings = DBSettings()
