@@ -11,6 +11,8 @@ pydantic = {extras = ["email"], version = "*"}
 alembic = "*"
 psycopg2-binary = "*"
 pytest = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
+python-jose = {extras = ["cryptography"], version = "*"}
 
 [dev-packages]
 flake8 = "*"

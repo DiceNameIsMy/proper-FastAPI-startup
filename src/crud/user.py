@@ -1,5 +1,6 @@
 from sqlalchemy.orm.session import Session
 
+from repository.hashing import get_password_hash
 from repository.models import User
 from schemas.user import UserToCreateSchema
 
@@ -28,7 +29,16 @@ def get_user_by_email(session: Session, email: str) -> User | None:
 
 
 def create_user(session: Session, user: UserToCreateSchema) -> User:
-    db_user = User(**user.dict())
+    user_to_create = user.dict()
+    user_to_create["password"] = get_password_hash(user_to_create["password"])
+
+    db_user = User(**user_to_create)
     session.add(db_user)
     session.commit()
     return db_user
+
+
+def delete_user(session: Session, user_id: int) -> None:
+    user = session.query(User).filter(User.id == user_id)
+    user.delete()
+    session.commit()
