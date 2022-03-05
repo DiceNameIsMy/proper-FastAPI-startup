@@ -2,12 +2,20 @@ from sqlalchemy.orm.session import Session
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from pydantic import parse_obj_as
 
-from dependencies import get_db_session
+from dependencies import get_db_session, get_current_user
 from crud import user
-from schemas.user import PublicUserSchema
+from schemas.user import UserInDbSchema, PublicUserSchema
 
 
 router = APIRouter()
+
+
+@router.get("/profile", response_model=PublicUserSchema, status_code=status.HTTP_200_OK)
+def get_profile(
+    current_user: UserInDbSchema = Depends(get_current_user),
+    session: Session = Depends(get_db_session),
+):
+    return current_user
 
 
 @router.get(
@@ -42,6 +50,7 @@ def get_user_by_id(
 def delete_user_by_id(
     user_id: int,
     session: Session = Depends(get_db_session),
+    current_user: UserInDbSchema = Depends(get_current_user),
 ):
     requested_user = user.get_user_by_id(session, user_id)
     if not requested_user:
