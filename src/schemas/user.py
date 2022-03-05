@@ -1,12 +1,31 @@
-from pydantic import BaseModel
+from pydantic import validator, EmailStr
+
+from . import ORMBaseModel
 
 
-class UserSchema(BaseModel):
+class UserInDbSchema(ORMBaseModel):
     id: int
-    username: str
-    email: str
+    email: EmailStr
     password: str
     is_active: bool
 
-    class Config:
-        orm_mode = True
+
+class PublicUserSchema(ORMBaseModel):
+    id: int
+    email: EmailStr
+
+
+class UserToCreateSchema(ORMBaseModel):
+    email: EmailStr
+    password: str
+
+    @validator("email", pre=True)
+    def validate_email(cls, value: str):
+        normalized_email = value.lower()
+        return normalized_email
+
+    @validator("password")
+    def validate_password_length(cls, value: str):
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return value
