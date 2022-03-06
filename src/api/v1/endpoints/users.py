@@ -56,5 +56,5 @@ def delete_user_by_id(
     if not requested_user:
         raise HTTPException(status_code=404, detail="user-not-found")
 
-    user.delete_user(session, user_id)
+    user.delete_user(session, requested_user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,8 +1,8 @@
 from sqlalchemy.orm.session import Session
 
-from repository.hashing import get_password_hash
 from repository.models import User
 from schemas.user import UserToCreateSchema
+from utils.hashing import get_password_hash
 
 
 def get_users(
@@ -38,7 +38,6 @@ def create_user(session: Session, user: UserToCreateSchema) -> User:
     return db_user
 
 
-def delete_user(session: Session, user_id: int) -> None:
-    user = session.query(User).filter(User.id == user_id)
-    user.delete()
+def delete_user(session: Session, user: User) -> None:
+    session.delete(user)
     session.commit()
