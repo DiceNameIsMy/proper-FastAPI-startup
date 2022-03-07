@@ -8,7 +8,7 @@ services:
     command: bash -c "
       cd src/
       && pipenv run alembic upgrade head
-      && pipenv run pytest"
+      && while true; do sleep 10; done"
     volumes:
       - ./src:/app/src
     env_file:
