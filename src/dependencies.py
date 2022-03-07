@@ -9,8 +9,8 @@ from settings import settings
 from repository.database import SessionLocal
 from repository.models import User
 from crud.user import get_user_by_id
-from utils.exceptions import credentials_exception
 from utils.authentication import decode_jwt_token
+from utils import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")
@@ -32,9 +32,9 @@ async def get_current_user(
         payload = decode_jwt_token(token, settings.secret_key, settings.jwt_algorithm)
         user_id = int(payload.get("sub"))
     except JWTError:
-        raise credentials_exception
+        raise exceptions.bad_credentials
 
     user = get_user_by_id(session, user_id)
     if user is None:
-        raise credentials_exception
+        raise exceptions.bad_credentials
     return user

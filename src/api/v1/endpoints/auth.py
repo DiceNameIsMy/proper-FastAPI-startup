@@ -10,8 +10,8 @@ from crud.user import get_user_by_email, create_user
 from schemas.auth import TokenSchema
 from schemas.user import PublicUserSchema, UserToCreateSchema
 from utils.authentication import create_access_token
-from utils.exceptions import invalid_credentials_exception
 from utils.hashing import verify_password
+from utils import exceptions
 
 
 router = APIRouter()
@@ -40,7 +40,7 @@ def login(
 ):
     user = get_user_by_email(session, form_data.username)
     if user is None or verify_password(form_data.password, user.password) is False:
-        raise invalid_credentials_exception
+        raise exceptions.invalid_credentials
 
     expiration_timedelta = timedelta(minutes=settings.access_token_expires_minutes)
     return TokenSchema(
