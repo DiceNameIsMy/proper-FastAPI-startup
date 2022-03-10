@@ -17,6 +17,11 @@ class PublicUserSchema(ORMBaseModel):
     is_email_verified: bool
 
 
+class PaginatedUserSchema(ORMBaseModel):
+    count: int
+    items: list[UserInDbSchema]
+
+
 class UserToCreateSchema(ORMBaseModel):
     email: EmailStr
     password: str

@@ -1,15 +1,12 @@
-from datetime import timedelta
-
 from sqlalchemy.orm.session import Session
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
+from domain.user import UserDomain, UserAlreadyExistError
 
 from settings import settings
-from dependencies import get_db_session, authenticate, get_email_server
+from dependencies import get_db_session, authenticate, get_email_server, get_users_domain
 from repository.crud.user import (
     get_user_by_email,
-    create_user,
-    create_verification_code,
     get_verification_code,
     use_verification_code,
 )
@@ -35,26 +32,18 @@ router = APIRouter()
 async def signup(
     new_user: UserToCreateSchema,
     background_tasks: BackgroundTasks,
+    user_domain: UserDomain = Depends(get_users_domain),
     email_server: EmailServer = Depends(get_email_server),
-    session: Session = Depends(get_db_session),
 ):
-    if get_user_by_email(session, new_user.email):
-        raise HTTPException(status_code=400, detail="email-is-taken")
-
-    created_user = create_user(session, new_user)
-    expiration_timedelta = timedelta(minutes=settings.signup_token_expires_minutes)
-    code = create_verification_code(session, created_user, expiration_timedelta)
-
-    background_tasks.add_task(
-        email_server.send_verification_code, created_user.email, code.code
-    )
-    token = create_jwt_token(
-        user_id=created_user.id,
-        expiration_timedelta=expiration_timedelta,
-        key=settings.secret_key,
-        algorithm=settings.jwt_algorithm,
-        issuer="/signup",
-    )
+    try:
+        created_user, code, token = user_domain.signup_user(new_user)
+        background_tasks.add_task(
+            email_server.send_verification_code, created_user.email, code.code
+        )
+    except UserAlreadyExistError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="email-is-taken"
+        )
     return SignedUpUserSchema(user=created_user, token=token)
 
 

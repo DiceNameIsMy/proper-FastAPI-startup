@@ -9,6 +9,7 @@ from schemas.auth import AuthenticatedUserSchema
 from settings import settings
 from repository.database import SessionLocal
 from repository.crud.user import get_user_by_id
+from domain.user import UserDomain
 from utils.authentication import decode_jwt_token
 from utils.email import EmailServer, FakeEmailServer
 from utils import exceptions
@@ -52,3 +53,7 @@ async def authenticate(
 
 def get_email_server() -> EmailServer:
     return email_server
+
+
+def get_users_domain(session: Session = Depends(get_db_session)) -> UserDomain:
+    return UserDomain(session=session)
