@@ -1,21 +1,6 @@
 version: "3.8"
 
 services:
-  api:
-    build:
-      context: .
-      dockerfile: ./compose/local/Dockerfile
-    command: bash -c "
-      cd src/
-      && pipenv run alembic upgrade head
-      && while true; do sleep 10; done"
-    volumes:
-      - ./src:/app/src
-    env_file:
-      - compose/local/.env
-    depends_on:
-      - pg
-
   pg:
     image: postgres:14-alpine
     volumes:
@@ -24,8 +9,8 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
       - POSTGRES_DB=database
-    expose:
-      - 5432
+    ports:
+      - 5433:5432
 
 volumes:
   pg_data:
