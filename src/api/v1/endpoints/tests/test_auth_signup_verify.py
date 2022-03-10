@@ -5,7 +5,7 @@ from sqlalchemy.orm.session import Session
 from fastapi.testclient import TestClient
 
 from repository.models import User, VerificationCode
-from crud.user import get_user_by_email, get_verification_code
+from repository.crud.user import get_user_by_email, get_verification_code
 
 
 URI = "/v1/signup/verify"

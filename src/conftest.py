@@ -10,7 +10,7 @@ from repository.models import User, VerificationCode
 
 from settings import settings
 from repository.database import SessionLocal, Base
-from crud.user import create_user, create_verification_code
+from repository.crud.user import create_user, create_verification_code
 from schemas.user import UserToCreateSchema
 
 from main import app

@@ -8,7 +8,7 @@ from schemas.auth import AuthenticatedUserSchema
 
 from settings import settings
 from repository.database import SessionLocal
-from crud.user import get_user_by_id
+from repository.crud.user import get_user_by_id
 from utils.authentication import decode_jwt_token
 from utils.email import EmailServer
 from utils import exceptions

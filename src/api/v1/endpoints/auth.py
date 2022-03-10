@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from settings import settings
 from dependencies import get_db_session, authenticate, get_email_server
-from crud.user import (
+from repository.crud.user import (
     get_user_by_email,
     create_user,
     create_verification_code,

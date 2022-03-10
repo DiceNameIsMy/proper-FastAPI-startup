@@ -4,7 +4,7 @@ from sqlalchemy.orm.session import Session
 
 from fastapi.testclient import TestClient
 
-from crud.user import get_user_by_email, create_user
+from repository.crud.user import get_user_by_email, create_user
 from schemas.user import UserToCreateSchema
 
 

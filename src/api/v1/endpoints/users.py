@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status, Response
 from pydantic import parse_obj_as
 
 from dependencies import get_db_session, authenticate
-from crud import user
+from repository.crud import user
 from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PublicUserSchema
 from utils import exceptions
