@@ -26,3 +26,11 @@ class EmailServer:
     def _send_mail(self, email: str, subject: str, body: str):
         message = f"Subject: {subject}\n\n{body}"
         self.server.sendmail(self.email, email, message)
+
+
+class FakeEmailServer:
+    def __init__(self):
+        pass
+
+    def send_verification_code(self, email: str, code: int):
+        pass

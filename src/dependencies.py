@@ -10,17 +10,20 @@ from settings import settings
 from repository.database import SessionLocal
 from repository.crud.user import get_user_by_id
 from utils.authentication import decode_jwt_token
-from utils.email import EmailServer
+from utils.email import EmailServer, FakeEmailServer
 from utils import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")
-email_server = EmailServer(
-    smtp_server=settings.email.smtp_server,
-    smtp_port=settings.email.smtp_port,
-    email=settings.email.address,
-    password=settings.email.password,
-)
+if settings.email.is_configured:
+    email_server = EmailServer(
+        smtp_server=settings.email.smtp_server,
+        smtp_port=settings.email.smtp_port,
+        email=settings.email.address,
+        password=settings.email.password,
+    )
+else:
+    email_server = FakeEmailServer()
 
 
 def get_db_session() -> Session:
