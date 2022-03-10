@@ -39,7 +39,7 @@ async def authenticate(
     token: str = Depends(oauth2_scheme),
 ) -> AuthenticatedUserSchema:
     try:
-        payload = decode_jwt_token(token, settings.secret_key, settings.jwt_algorithm)
+        payload = decode_jwt_token(token, settings.secret_key, settings.jwt.algorithm)
     except JWTError:
         raise exceptions.bad_credentials
 

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pydantic import BaseSettings, Field
 
 
@@ -43,6 +44,12 @@ class EmailSettings(BaseSettings):
         env_prefix = "API_EMAIL_"
 
 
+class JWTSettings(BaseSettings):
+    algorithm: str = Field("HS256", const=True)
+    access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
+    signup_expiration: timedelta = Field(timedelta(minutes=15), const=True)
+
+
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
 
@@ -51,16 +58,13 @@ class Settings(BaseSettings):
     secret_key: str = "secret"
     allowed_origins_str: str = "*"
 
-    jwt_algorithm: str = Field("HS256", const=True)
-    access_token_expires_minutes: int = Field(60 * 60 * 24 * 3, const=True)
-    signup_token_expires_minutes: int = Field(15, const=True)
-
     @property
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
 
     db: DBSettings = DBSettings()
     email: EmailSettings = EmailSettings()
+    jwt: JWTSettings = JWTSettings()
 
     class Config:
         env_prefix = "API_"

@@ -1,6 +1,5 @@
 import contextlib
 import pytest
-from datetime import timedelta
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm.session import Session
@@ -80,7 +79,7 @@ def email_not_verified_user_verification_code(
     return create_verification_code(
         db,
         email_not_verified_user,
-        timedelta(minutes=settings.signup_token_expires_minutes),
+        settings.jwt.signup_expiration,
     )
 
 
@@ -94,8 +93,8 @@ def email_already_verified_user(db: Session, email_not_verified_user: User) -> U
 def email_not_verified_user_signup_token(email_not_verified_user) -> str:
     return create_jwt_token(
         user_id=email_not_verified_user.id,
-        expiration_timedelta=timedelta(minutes=settings.signup_token_expires_minutes),
+        expiration_timedelta=settings.jwt.signup_expiration,
         key=settings.secret_key,
-        algorithm=settings.jwt_algorithm,
+        algorithm=settings.jwt.algorithm,
         issuer="/signup",
     )

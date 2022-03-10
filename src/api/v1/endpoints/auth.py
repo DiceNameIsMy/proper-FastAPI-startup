@@ -89,13 +89,12 @@ def login(
     ):
         raise exceptions.invalid_credentials
 
-    expiration_timedelta = timedelta(minutes=settings.access_token_expires_minutes)
     return TokenSchema(
         token=create_jwt_token(
             user_id=user.id,
-            expiration_timedelta=expiration_timedelta,
+            expiration_timedelta=settings.jwt.access_expiration,
             key=settings.secret_key,
-            algorithm=settings.jwt_algorithm,
+            algorithm=settings.jwt.algorithm,
             issuer="/login",
         )
     )
