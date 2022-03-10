@@ -29,6 +29,16 @@ class DBSettings(BaseSettings):
         env_prefix = "API_PG_"
 
 
+class EmailSettings(BaseSettings):
+    smtp_server: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    address: str = ""
+    password: str = ""
+
+    class Config:
+        env_prefix = "API_EMAIL_"
+
+
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
 
@@ -39,12 +49,14 @@ class Settings(BaseSettings):
 
     jwt_algorithm: str = Field("HS256", const=True)
     access_token_expires_minutes: int = Field(60 * 60 * 24 * 3, const=True)
+    signup_token_expires_minutes: int = Field(15, const=True)
 
     @property
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
 
     db: DBSettings = DBSettings()
+    email: EmailSettings = EmailSettings()
 
     class Config:
         env_prefix = "API_"

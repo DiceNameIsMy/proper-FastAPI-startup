@@ -1,5 +1,5 @@
 [flake8]
-ignore = D203
+ignore = D203 W503
 max-line-length = 89
 exclude =
     .git,

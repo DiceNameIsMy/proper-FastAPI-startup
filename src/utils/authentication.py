@@ -3,15 +3,20 @@ from datetime import datetime, timedelta
 from jose import jwt
 
 
-def create_access_token(
-    user_id: int, expiration_timedelta: timedelta, key: str, algorithm: str | list[str]
+def create_jwt_token(
+    user_id: int,
+    expiration_timedelta: timedelta,
+    key: str,
+    algorithm: str | list[str],
+    issuer: str = "",
 ) -> str:
-    to_encode = {"sub": str(user_id)}
     expire = datetime.utcnow() + expiration_timedelta
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, key, algorithm=algorithm
-    )
+    to_encode = {
+        "sub": str(user_id),
+        "exp": expire,
+        "iss": issuer,
+    }
+    encoded_jwt = jwt.encode(to_encode, key, algorithm=algorithm)
     return encoded_jwt
 
 

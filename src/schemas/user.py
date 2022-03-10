@@ -8,11 +8,13 @@ class UserInDbSchema(ORMBaseModel):
     email: EmailStr
     password: str
     is_active: bool
+    is_email_verified: bool
 
 
 class PublicUserSchema(ORMBaseModel):
     id: int
     email: EmailStr
+    is_email_verified: bool
 
 
 class UserToCreateSchema(ORMBaseModel):

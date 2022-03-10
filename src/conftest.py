@@ -1,16 +1,20 @@
 import contextlib
 import pytest
+from datetime import timedelta
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm.session import Session
 
 from fastapi.testclient import TestClient
+from repository.models import User, VerificationCode
 
+from settings import settings
 from repository.database import SessionLocal, Base
-from crud.user import create_user
+from crud.user import create_user, create_verification_code
 from schemas.user import UserToCreateSchema
 
 from main import app
+from utils.authentication import create_jwt_token
 
 
 meta = MetaData()
@@ -41,8 +45,57 @@ def db() -> Session:
         session.close()
 
 
+def verify_user_by_id(db: Session, user: User):
+    db.query(User).filter(User.id == user.id).update({"is_email_verified": True})
+    db.commit()
+    db.refresh(user)
+
+
 @pytest.fixture
 def regular_user(db):
+    user = create_user(
+        db,
+        UserToCreateSchema(email="regular@test.test", password="password"),
+    )
+    verify_user_by_id(db, user)
+    return user
+
+
+@pytest.fixture
+def email_not_verified_user(db):
     return create_user(
-        db, UserToCreateSchema(email="regular@test.test", password="password")
+        db,
+        UserToCreateSchema(
+            email="unverified@test.test",
+            password="password",
+            is_email_verified=False,
+        ),
+    )
+
+
+@pytest.fixture
+def email_not_verified_user_verification_code(
+    db: Session, email_not_verified_user: User
+) -> VerificationCode:
+    return create_verification_code(
+        db,
+        email_not_verified_user,
+        timedelta(minutes=settings.signup_token_expires_minutes),
+    )
+
+
+@pytest.fixture
+def email_already_verified_user(db: Session, email_not_verified_user: User) -> User:
+    verify_user_by_id(db, email_not_verified_user)
+    return email_not_verified_user
+
+
+@pytest.fixture
+def email_not_verified_user_signup_token(email_not_verified_user) -> str:
+    return create_jwt_token(
+        user_id=email_not_verified_user.id,
+        expiration_timedelta=timedelta(minutes=settings.signup_token_expires_minutes),
+        key=settings.secret_key,
+        algorithm=settings.jwt_algorithm,
+        issuer="/signup",
     )
