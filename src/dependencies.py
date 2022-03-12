@@ -12,7 +12,7 @@ from repository.crud.user import get_user_by_id
 from domain.user import UserDomain
 from utils.authentication import decode_jwt_token
 from utils.email import EmailServer, FakeEmailServer
-from utils import exceptions
+import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")

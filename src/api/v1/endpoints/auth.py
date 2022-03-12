@@ -16,7 +16,7 @@ from schemas.auth import (
 )
 from schemas.user import UserToCreateSchema, PublicUserSchema
 from utils.email import EmailServer
-from utils import exceptions
+import exceptions
 
 
 router = APIRouter()

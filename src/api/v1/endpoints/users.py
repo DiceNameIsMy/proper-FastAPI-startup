@@ -5,7 +5,7 @@ from domain import DomainError
 from domain.user.user import UserDomain
 from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PaginatedUserSchema, PublicUserSchema
-from utils import exceptions
+import exceptions
 
 
 router = APIRouter()
