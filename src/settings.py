@@ -47,7 +47,7 @@ class EmailSettings(BaseSettings):
 class JWTSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
-    signup_expiration: timedelta = Field(timedelta(minutes=15), const=True)
+    verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
 
 
 class Settings(BaseSettings):

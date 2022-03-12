@@ -44,9 +44,7 @@ class UserDomain(ABCDomain):
             count=len(users), items=parse_obj_as(list[UserInDbSchema], users)
         )
 
-    def signup(
-        self, new_user: UserToCreateSchema
-    ) -> tuple[User, VerificationCode, str]:
+    def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
         try:
             user = self.create(new_user)
         except DomainError:
@@ -54,7 +52,7 @@ class UserDomain(ABCDomain):
         code = self.create_verification_code(user)
         token = create_jwt_token(
             user_id=user.id,
-            expiration_timedelta=settings.jwt.signup_expiration,
+            expiration_timedelta=settings.jwt.verify_email_expiration,
             key=settings.secret_key,
             algorithm=settings.jwt.algorithm,
             type="verify-email",
@@ -81,7 +79,7 @@ class UserDomain(ABCDomain):
 
     def create_verification_code(self, user: User) -> VerificationCode:
         return create_verification_code(
-            self.session, user, settings.jwt.signup_expiration
+            self.session, user, settings.jwt.verify_email_expiration
         )
 
     def verify_email(self, user: UserInDbSchema, code: int) -> User:
@@ -105,11 +103,18 @@ class UserDomain(ABCDomain):
         ):
             raise DomainError("invalid-credentials")
 
-        token = create_jwt_token(
+        return user, self.make_token(user, "access")
+
+    def make_token(self, user: User, type: str) -> str:
+        try:
+            expiration_timedelta = getattr(settings.jwt, f"{type}_expiration")
+        except AttributeError:
+            raise DomainError("invalid-token-type")
+
+        return create_jwt_token(
             user_id=user.id,
-            expiration_timedelta=settings.jwt.access_expiration,
+            expiration_timedelta=expiration_timedelta,
             key=settings.secret_key,
             algorithm=settings.jwt.algorithm,
-            type="access",
+            type=type,
         )
-        return user, token
