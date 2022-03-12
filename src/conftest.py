@@ -79,7 +79,7 @@ def email_not_verified_user_verification_code(
     return create_verification_code(
         db,
         email_not_verified_user,
-        settings.jwt.signup_expiration,
+        settings.jwt.verify_email_expiration,
     )
 
 
@@ -93,7 +93,7 @@ def email_already_verified_user(db: Session, email_not_verified_user: User) -> U
 def email_not_verified_user_signup_token(email_not_verified_user) -> str:
     return create_jwt_token(
         user_id=email_not_verified_user.id,
-        expiration_timedelta=settings.jwt.signup_expiration,
+        expiration_timedelta=settings.jwt.verify_email_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,
         type="verify-email",
