@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm.session import Session
 
 from repository.models import User, VerificationCode
-from schemas.user import UserToCreateSchema
-from utils.hashing import get_password_hash, generate_verification_code
+from utils.hashing import generate_verification_code
 
 
 def get_users(
@@ -21,33 +20,15 @@ def get_user_by_email(session: Session, email: str) -> User | None:
     return session.query(User).filter(User.email == email).first()
 
 
-def create_user(session: Session, user: UserToCreateSchema) -> User:
-    user_to_create = user.dict()
-    user_to_create["password"] = get_password_hash(user_to_create["password"])
-
-    db_user = User(**user_to_create)
-    session.add(db_user)
+def create_user(session: Session, user: User) -> User:
+    session.add(user)
     session.commit()
-    return db_user
-
-
-def verify_user_by_id(session: Session, user_id: int):
-    session.query(User).filter(User.id == user_id).update({"is_email_verified": True})
-    session.commit()
+    return user
 
 
 def delete_user(session: Session, user: User) -> None:
     session.delete(user)
     session.commit()
-
-
-def validate_code_is_unique(session: Session, user_id: int, code: str) -> bool:
-    return (
-        session.query(VerificationCode.user_id)
-        .filter(VerificationCode.user_id == user_id, VerificationCode.code == code)
-        .first()
-        is None
-    )
 
 
 def get_verification_code(

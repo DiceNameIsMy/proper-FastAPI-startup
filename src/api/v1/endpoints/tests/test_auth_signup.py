@@ -4,7 +4,8 @@ from sqlalchemy.orm.session import Session
 
 from fastapi.testclient import TestClient
 
-from repository.crud.user import get_user_by_email, create_user
+from repository.crud.user import get_user_by_email
+from domain.user import UserDomain
 from schemas.user import UserToCreateSchema
 
 
@@ -33,9 +34,9 @@ def test_bad_email(client: TestClient, db: Session):
     assert get_user_by_email(db, "invalid_email") is None
 
 
-def test_existing_email(client: TestClient, db: Session):
-    create_user(
-        db, UserToCreateSchema(email="existing_email@test.test", password="password")
+def test_existing_email(client: TestClient, user_domain: UserDomain):
+    user_domain.create(
+        UserToCreateSchema(email="existing_email@test.test", password="password")
     )
     response: Response = client.post(
         URI,
@@ -43,4 +44,4 @@ def test_existing_email(client: TestClient, db: Session):
         headers={"Content-Type": "Application/json"},
     )
     assert response.status_code == 400
-    assert get_user_by_email(db, "existing_email@test.test") is not None
+    assert user_domain.get_by_email("existing_email@test.test") is not None

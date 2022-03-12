@@ -7,6 +7,7 @@ from pydantic import parse_obj_as
 from settings import settings
 from repository.models import User, VerificationCode
 from repository.crud.user import (
+    create_user,
     get_user_by_email,
     get_user_by_id,
     get_users,
@@ -65,14 +66,10 @@ class UserDomain(ABCDomain):
     def create(self, user: UserToCreateSchema) -> User:
         user_to_create = user.dict()
         user_to_create["password"] = get_password_hash(user_to_create["password"])
-
-        db_user = User(**user_to_create)
-        self.session.add(db_user)
         try:
-            self.session.commit()
+            return create_user(self.session, User(**user_to_create))
         except IntegrityError:
             raise DomainError("user-already-exists")
-        return db_user
 
     def update(self, user: User) -> User:
         pass

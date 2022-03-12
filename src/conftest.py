@@ -9,7 +9,7 @@ from repository.models import User, VerificationCode
 
 from settings import settings
 from repository.database import SessionLocal, Base
-from repository.crud.user import create_user, create_verification_code
+from domain.user import UserDomain
 from schemas.user import UserToCreateSchema
 
 from main import app
@@ -17,6 +17,12 @@ from utils.authentication import create_jwt_token
 
 
 meta = MetaData()
+
+
+def verify_user_by_id(db: Session, user: User):
+    db.query(User).filter(User.id == user.id).update({"is_email_verified": True})
+    db.commit()
+    db.refresh(user)
 
 
 @pytest.fixture(autouse=True)
@@ -44,43 +50,36 @@ def db() -> Session:
         session.close()
 
 
-def verify_user_by_id(db: Session, user: User):
-    db.query(User).filter(User.id == user.id).update({"is_email_verified": True})
-    db.commit()
-    db.refresh(user)
+@pytest.fixture
+def user_domain(db: Session) -> UserDomain:
+    return UserDomain(db)
 
 
 @pytest.fixture
-def regular_user(db):
-    user = create_user(
-        db,
-        UserToCreateSchema(email="regular@test.test", password="password"),
+def regular_user(user_domain: UserDomain, db: Session):
+    user = user_domain.create(
+        UserToCreateSchema(email="regular@test.test", password="password")
     )
     verify_user_by_id(db, user)
     return user
 
 
 @pytest.fixture
-def email_not_verified_user(db):
-    return create_user(
-        db,
+def email_not_verified_user(user_domain):
+    return user_domain.create(
         UserToCreateSchema(
             email="unverified@test.test",
             password="password",
             is_email_verified=False,
-        ),
+        )
     )
 
 
 @pytest.fixture
 def email_not_verified_user_verification_code(
-    db: Session, email_not_verified_user: User
+    user_domain: UserDomain, email_not_verified_user: User
 ) -> VerificationCode:
-    return create_verification_code(
-        db,
-        email_not_verified_user,
-        settings.jwt.verify_email_expiration,
-    )
+    return user_domain.create_verification_code(email_not_verified_user)
 
 
 @pytest.fixture
