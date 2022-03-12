@@ -6,7 +6,7 @@ from domain import DomainError
 from dependencies import (
     authenticate_verify_email_token,
     get_email_server,
-    get_users_domain,
+    get_user_domain,
 )
 from schemas.auth import (
     AuthenticatedUserSchema,
@@ -28,7 +28,7 @@ router = APIRouter()
 async def signup(
     new_user: UserToCreateSchema,
     background_tasks: BackgroundTasks,
-    user_domain: UserDomain = Depends(get_users_domain),
+    user_domain: UserDomain = Depends(get_user_domain),
     email_server: EmailServer = Depends(get_email_server),
 ):
     try:
@@ -46,7 +46,7 @@ async def signup(
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Depends(authenticate_verify_email_token),
-    user_domain: UserDomain = Depends(get_users_domain),
+    user_domain: UserDomain = Depends(get_user_domain),
 ):
     try:
         user = user_domain.verify_email(auth.user, verification_code.code)
@@ -59,7 +59,7 @@ def signup_verify(
 @router.post("/login", response_model=TokenSchema, status_code=status.HTTP_200_OK)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    user_domain: UserDomain = Depends(get_users_domain),
+    user_domain: UserDomain = Depends(get_user_domain),
 ):
     try:
         _, token = user_domain.login(form_data.username, form_data.password)

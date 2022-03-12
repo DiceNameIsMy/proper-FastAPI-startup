@@ -12,7 +12,7 @@ class ABCDomain(ABC):
     @classmethod
     def parse_filter_kwargs(cls, filters: dict) -> list:
         return [
-            getattr(cls.model, field) == value for field, value in enumerate(filters)
+            getattr(cls.model, field) == filters[field] for field in filters
         ]
 
 

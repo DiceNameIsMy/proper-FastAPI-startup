@@ -8,10 +8,9 @@ from utils.hashing import get_password_hash, generate_verification_code
 
 
 def get_users(
-    session: Session, offset: int, limit: int, filters: dict = {}
+    session: Session, offset: int, limit: int, filters: list = []
 ) -> list[User]:
-    parsed_filters = (getattr(User, key) == value for key, value in enumerate(filters))
-    return session.query(User).filter(*parsed_filters).offset(offset).limit(limit).all()
+    return session.query(User).filter(*filters).offset(offset).limit(limit).all()
 
 
 def get_user_by_id(session: Session, user_id: int) -> User | None:

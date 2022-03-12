@@ -1,11 +1,10 @@
-from sqlalchemy.orm.session import Session
 from fastapi import APIRouter, Depends, status, Response
-from pydantic import parse_obj_as
 
-from dependencies import get_db_session, authenticate
-from repository.crud import user
+from dependencies import get_user_domain, authenticate_access_token
+from domain import DomainError
+from domain.user.user import UserDomain
 from schemas.auth import AuthenticatedUserSchema
-from schemas.user import PublicUserSchema
+from schemas.user import PaginatedUserSchema, PublicUserSchema
 from utils import exceptions
 
 
@@ -13,45 +12,44 @@ router = APIRouter()
 
 
 @router.get("/profile", response_model=PublicUserSchema)
-def get_profile(auth: AuthenticatedUserSchema = Depends(authenticate)):
+def get_profile(auth: AuthenticatedUserSchema = Depends(authenticate_access_token)):
     return auth.user
 
 
-@router.get("/users", response_model=list[PublicUserSchema])
+@router.get("/users", response_model=PaginatedUserSchema)
 def get_users(
     page: int = 1,
     page_size: int = 30,
-    session: Session = Depends(get_db_session),
+    user_domain: UserDomain = Depends(get_user_domain),
 ):
     offset = (page - 1) * page_size
-    return parse_obj_as(
-        list[PublicUserSchema], user.get_users(session, offset, page_size)
-    )
+    return user_domain.fetch({"is_active": True}, offset, page_size)
 
 
 @router.get("/users/{user_id}", response_model=PublicUserSchema)
 def get_user_by_id(
     user_id: int,
-    session: Session = Depends(get_db_session),
+    user_domain: UserDomain = Depends(get_user_domain),
 ):
-    requested_user = user.get_user_by_id(session, user_id)
-    if not requested_user:
-        raise exceptions.NotFound(detail="user-not-found")
-
-    return parse_obj_as(PublicUserSchema, requested_user)
+    try:
+        return user_domain.get_by_id(user_id)
+    except DomainError as e:
+        raise exceptions.NotFound(detail=str(e))
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_by_id(
     user_id: int,
-    session: Session = Depends(get_db_session),
-    auth: AuthenticatedUserSchema = Depends(authenticate),
+    auth: AuthenticatedUserSchema = Depends(authenticate_access_token),
+    user_domain: UserDomain = Depends(get_user_domain),
 ):
-    requested_user = user.get_user_by_id(session, user_id)
-    if not requested_user:
-        raise exceptions.NotFound(detail="user-not-found")
+    try:
+        requested_user = user_domain.get_by_id(user_id)
+    except DomainError as e:
+        raise exceptions.NotFound(detail=str(e))
+
     if requested_user.id != auth.user.id:
         raise exceptions.PermissionDenied(detail="can-not-delete-other-user")
 
-    user.delete_user(session, requested_user)
+    user_domain.delete(requested_user.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -23,6 +23,8 @@ from utils.hashing import get_password_hash, verify_password
 
 
 class UserDomain(ABCDomain):
+    model = User
+
     def get_by_id(self, user_id: int) -> User:
         user = get_user_by_id(self.session, user_id)
         if not user:
@@ -39,7 +41,8 @@ class UserDomain(ABCDomain):
         self, filters: dict, page: int = 0, page_size: int = 20
     ) -> PaginatedUserSchema:
         offset = page * page_size
-        users = get_users(self.session, offset, page_size, filters)
+        parsed_filters = self.parse_filter_kwargs(filters)
+        users = get_users(self.session, offset, page_size, parsed_filters)
         return PaginatedUserSchema(
             count=len(users), items=parse_obj_as(list[UserInDbSchema], users)
         )

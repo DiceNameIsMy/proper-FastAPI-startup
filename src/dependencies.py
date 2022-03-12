@@ -71,5 +71,5 @@ def get_email_server() -> EmailServer:
     return email_server
 
 
-def get_users_domain(session: Session = Depends(get_db_session)) -> UserDomain:
+def get_user_domain(session: Session = Depends(get_db_session)) -> UserDomain:
     return UserDomain(session=session)

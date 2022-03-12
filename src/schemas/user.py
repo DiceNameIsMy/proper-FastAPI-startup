@@ -19,7 +19,7 @@ class PublicUserSchema(ORMBaseModel):
 
 class PaginatedUserSchema(ORMBaseModel):
     count: int
-    items: list[UserInDbSchema]
+    items: list[PublicUserSchema]
 
 
 class UserToCreateSchema(ORMBaseModel):
