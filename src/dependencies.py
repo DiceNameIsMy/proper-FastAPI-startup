@@ -51,6 +51,22 @@ async def authenticate(
     return AuthenticatedUserSchema(user=user, token_payload=payload)
 
 
+def authenticate_access_token(
+    auth: AuthenticatedUserSchema = Depends(authenticate),
+) -> AuthenticatedUserSchema:
+    if auth.token_payload.get("type") != "access":
+        raise exceptions.bad_credentials
+    return auth
+
+
+def authenticate_verify_email_token(
+    auth: AuthenticatedUserSchema = Depends(authenticate),
+) -> AuthenticatedUserSchema:
+    if auth.token_payload.get("type") != "verify-email":
+        raise exceptions.bad_credentials
+    return auth
+
+
 def get_email_server() -> EmailServer:
     return email_server
 

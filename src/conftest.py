@@ -96,5 +96,5 @@ def email_not_verified_user_signup_token(email_not_verified_user) -> str:
         expiration_timedelta=settings.jwt.signup_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,
-        issuer="/signup",
+        type="verify-email",
     )
