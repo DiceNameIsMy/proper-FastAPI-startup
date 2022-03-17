@@ -42,7 +42,7 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def db() -> Session:
+def db():
     session: Session = SessionLocal()
     try:
         yield session

@@ -1,5 +1,7 @@
+from typing import Type
+
 from sqlalchemy.orm.session import Session
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound
 
 from jose import JWTError
 
@@ -12,23 +14,19 @@ from repository.database import SessionLocal
 from repository.crud.user import get_user_by_id
 from domain.user import UserDomain
 from utils.authentication import decode_jwt_token
-from utils.email import EmailServer, FakeEmailServer
+from utils.email import EmailServerProtocol, EmailServer, FakeEmailServer
 import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")
-if settings.email.is_configured:
-    email_server = EmailServer(
-        smtp_server=settings.email.smtp_server,
-        smtp_port=settings.email.smtp_port,
-        email=settings.email.address,
-        password=settings.email.password,
-    )
-else:
-    email_server = FakeEmailServer()
+
+EmailServerClass: Type = (
+    EmailServer if settings.email.is_configured else FakeEmailServer
+)
+email_server: EmailServerProtocol = EmailServerClass(**settings.email.kwargs)
 
 
-def get_db_session() -> Session:
+def get_db_session():
     session: Session = SessionLocal()
     try:
         yield session
@@ -45,7 +43,7 @@ async def authenticate(
     except JWTError:
         raise exceptions.bad_credentials
 
-    user_id = int(payload.get("sub"))
+    user_id = int(payload.get("sub", 0))
     try:
         user = get_user_by_id(session, user_id)
         return AuthenticatedUserSchema(user=user, token_payload=payload)
@@ -69,7 +67,7 @@ def authenticate_verify_email_token(
     return auth
 
 
-def get_email_server() -> EmailServer:
+def get_email_server() -> EmailServerProtocol:
     return email_server
 
 

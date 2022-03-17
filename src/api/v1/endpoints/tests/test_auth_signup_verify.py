@@ -3,7 +3,7 @@ import pytest
 from requests.models import Response
 
 from sqlalchemy.orm.session import Session
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound
 
 from fastapi.testclient import TestClient
 

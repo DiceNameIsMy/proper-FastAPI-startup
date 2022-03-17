@@ -63,5 +63,5 @@ def delete_user_by_id(
     if requested_user.id != auth.user.id:
         raise exceptions.PermissionDenied(detail="can_not_delete_other_user")
 
-    user_domain.delete(requested_user.id)
+    user_domain.delete(requested_user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

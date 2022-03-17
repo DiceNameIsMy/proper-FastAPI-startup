@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import (
     String,
     Column,
@@ -9,6 +11,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.orm import relationship
+from pydantic import EmailStr
 
 from .database import Base
 
@@ -16,13 +19,15 @@ from .database import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    email = Column(String(127), unique=True, nullable=False)
-    password = Column(String(255), nullable=False)
-    is_active = Column(Boolean(), default=True, nullable=False)
-    is_email_verified = Column(Boolean(), default=False, nullable=False)
+    id: int = Column(Integer, primary_key=True)
+    email: EmailStr = Column(String(127), unique=True, nullable=False)
+    password: str = Column(String(255), nullable=False)
+    is_active: bool = Column(Boolean(), default=True, nullable=False)
+    is_email_verified: bool = Column(Boolean(), default=False, nullable=False)
 
-    verification_codes = relationship("VerificationCode", back_populates="user")
+    verification_codes: list["VerificationCode"] = relationship(
+        "VerificationCode", back_populates="user"
+    )
 
 
 class VerificationCode(Base):
@@ -32,9 +37,11 @@ class VerificationCode(Base):
         Index("verification_codes_user_id_idx", "user_id", "code"),
     )
 
-    id = Column(Integer, primary_key=True)
-    code = Column(Integer, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
+    id: int = Column(Integer, primary_key=True)
+    code: int = Column(Integer, nullable=False)
+    user_id: int = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    expires_at: datetime = Column(DateTime(timezone=True), nullable=False)
 
-    user = relationship("User", back_populates="verification_codes")
+    user: User = relationship("User", back_populates="verification_codes")

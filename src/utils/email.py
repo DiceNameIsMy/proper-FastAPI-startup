@@ -1,11 +1,20 @@
 import ssl
 import smtplib
+from typing import Protocol
+
+
+class EmailServerProtocol(Protocol):
+    def __init__(self, smtp_server: str, smtp_port: int, address: str, password: str):
+        """"""
+
+    def send_verification_code(self, email: str, code: int) -> None:
+        """"""
 
 
 class EmailServer:
-    def __init__(self, smtp_server: str, smtp_port: int, email: str, password: str):
+    def __init__(self, smtp_server: str, smtp_port: int, address: str, password: str):
         self.is_logged_in = False
-        self.email = email
+        self.email = address
         self.password = password
         self.context = ssl.create_default_context()
         self._server = smtplib.SMTP(smtp_server, smtp_port)
@@ -18,7 +27,7 @@ class EmailServer:
             self.is_logged_in = True
         return self._server
 
-    def send_verification_code(self, email: str, code: int):
+    def send_verification_code(self, email: str, code: int) -> None:
         subject = "Verify your email"
         body = f"Please verify your email by entering the following code: {code}"
         self._send_mail(email, subject, body)
@@ -29,8 +38,8 @@ class EmailServer:
 
 
 class FakeEmailServer:
-    def __init__(self):
+    def __init__(self, smtp_server: str, smtp_port: int, address: str, password: str):
         pass
 
-    def send_verification_code(self, email: str, code: int):
+    def send_verification_code(self, email: str, code: int) -> None:
         pass

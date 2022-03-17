@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 
 from pydantic import parse_obj_as
 
@@ -64,8 +65,8 @@ class UserDomain(ABCDomain):
     def update(self, user: User) -> User:
         pass
 
-    def delete(self, user_id: int) -> None:
-        delete_user(self.session, user_id)
+    def delete(self, user: User) -> None:
+        delete_user(self.session, user)
 
     def create_verification_code(self, user: User) -> VerificationCode:
         return create_verification_code(

@@ -38,7 +38,11 @@ class EmailSettings(BaseSettings):
 
     @property
     def is_configured(self) -> bool:
-        return self.address and self.password
+        return bool(self.address and self.password)
+
+    @property
+    def kwargs(self) -> dict:
+        return self.__dict__
 
     class Config:
         env_prefix = "API_EMAIL_"
