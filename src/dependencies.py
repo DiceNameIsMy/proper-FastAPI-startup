@@ -1,4 +1,5 @@
 from sqlalchemy.orm.session import Session
+from sqlalchemy.exc import NoResultFound
 
 from jose import JWTError
 
@@ -45,10 +46,11 @@ async def authenticate(
         raise exceptions.bad_credentials
 
     user_id = int(payload.get("sub"))
-    user = get_user_by_id(session, user_id)
-    if user is None:
+    try:
+        user = get_user_by_id(session, user_id)
+        return AuthenticatedUserSchema(user=user, token_payload=payload)
+    except NoResultFound:
         raise exceptions.bad_credentials
-    return AuthenticatedUserSchema(user=user, token_payload=payload)
 
 
 def authenticate_access_token(

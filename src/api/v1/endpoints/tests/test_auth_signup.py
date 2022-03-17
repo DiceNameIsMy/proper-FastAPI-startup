@@ -1,6 +1,8 @@
+import pytest
 from requests.models import Response
 
 from sqlalchemy.orm.session import Session
+from sqlalchemy.exc import NoResultFound
 
 from fastapi.testclient import TestClient
 
@@ -18,10 +20,10 @@ def test_valid_user(client: TestClient, db: Session):
         json={"email": "valid@test.test", "password": "password"},
         headers={"Content-Type": "Application/json"},
     )
-    assert response.json().get("user").get("email") == "valid@test.test"
-    assert response.status_code == 201
+    assert response.status_code == 201, response.json()
+    assert response.json().get("user").get("email") == "valid@test.test", response.json()
 
-    assert get_user_by_email(db, "valid@test.test") is not None
+    assert get_user_by_email(db, "valid@test.test")
 
 
 def test_bad_email(client: TestClient, db: Session):
@@ -31,7 +33,8 @@ def test_bad_email(client: TestClient, db: Session):
         headers={"Content-Type": "Application/json"},
     )
     assert response.status_code == 422
-    assert get_user_by_email(db, "invalid_email") is None
+    with pytest.raises(NoResultFound):
+        get_user_by_email(db, "invalid_email")
 
 
 def test_existing_email(client: TestClient, user_domain: UserDomain):
@@ -44,4 +47,4 @@ def test_existing_email(client: TestClient, user_domain: UserDomain):
         headers={"Content-Type": "Application/json"},
     )
     assert response.status_code == 400
-    assert user_domain.get_by_email("existing_email@test.test") is not None
+    assert user_domain.get_by_email("existing_email@test.test")

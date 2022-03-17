@@ -33,12 +33,14 @@ async def signup(
 ):
     try:
         created_user, code, token = user_domain.signup(new_user)
-        background_tasks.add_task(
-            email_server.send_verification_code, created_user.email, code.code
+    except DomainError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="email_is_taken"
         )
-    except DomainError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+    background_tasks.add_task(
+        email_server.send_verification_code, created_user.email, code.code
+    )
     return SignedUpUserSchema(user=created_user, token=token)
 
 
@@ -48,10 +50,16 @@ def signup_verify(
     auth: AuthenticatedUserSchema = Depends(authenticate_verify_email_token),
     user_domain: UserDomain = Depends(get_user_domain),
 ):
+    if auth.user.is_email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="email_already_verified"
+        )
     try:
         user = user_domain.verify_email(auth.user, verification_code.code)
-    except DomainError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except DomainError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_verification_code"
+        )
 
     return user
 

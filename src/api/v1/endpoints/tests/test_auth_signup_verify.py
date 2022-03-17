@@ -1,6 +1,9 @@
+import pytest
+
 from requests.models import Response
 
 from sqlalchemy.orm.session import Session
+from sqlalchemy.exc import NoResultFound
 
 from fastapi.testclient import TestClient
 
@@ -29,7 +32,9 @@ def test_valid_code(
     )
     assert response.status_code == 200
     assert get_user_by_email(db, email_not_verified_user.email).is_email_verified
-    assert get_verification_code(db, email_not_verified_user.id, code) is None
+
+    with pytest.raises(NoResultFound):
+        get_verification_code(db, email_not_verified_user.id, code)
 
 
 def test_already_verified(
@@ -50,4 +55,4 @@ def test_already_verified(
     )
     assert response.status_code == 400
     assert get_user_by_email(db, email_already_verified_user.email).is_email_verified
-    assert get_verification_code(db, email_already_verified_user.id, code) is not None
+    assert get_verification_code(db, email_already_verified_user.id, code)

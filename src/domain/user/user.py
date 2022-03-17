@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from pydantic import parse_obj_as
 
@@ -27,40 +27,30 @@ class UserDomain(ABCDomain):
     model = User
 
     def get_by_id(self, user_id: int) -> User:
-        user = get_user_by_id(self.session, user_id)
-        if not user:
-            raise DomainError("user-not-found")
-        return user
+        try:
+            return get_user_by_id(self.session, user_id)
+        except NoResultFound:
+            raise DomainError("user_not_found")
 
     def get_by_email(self, email: str) -> User:
-        user = get_user_by_email(self.session, email)
-        if not user:
-            raise DomainError("user-not-found")
-        return user
+        try:
+            return get_user_by_email(self.session, email)
+        except NoResultFound:
+            raise DomainError("user_not_found")
 
     def fetch(
         self, filters: dict, page: int = 0, page_size: int = 20
     ) -> PaginatedUserSchema:
         offset = page * page_size
-        parsed_filters = self.parse_filter_kwargs(filters)
-        users = get_users(self.session, offset, page_size, parsed_filters)
+        users = get_users(self.session, offset, page_size, filters)
         return PaginatedUserSchema(
             count=len(users), items=parse_obj_as(list[UserInDbSchema], users)
         )
 
     def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
-        try:
-            user = self.create(new_user)
-        except DomainError:
-            raise DomainError("email-is-taken")
+        user = self.create(new_user)
         code = self.create_verification_code(user)
-        token = create_jwt_token(
-            user_id=user.id,
-            expiration_timedelta=settings.jwt.verify_email_expiration,
-            key=settings.secret_key,
-            algorithm=settings.jwt.algorithm,
-            type="verify-email",
-        )
+        token = self.make_token(user, "verify_email")
         return user, code, token
 
     def create(self, user: UserToCreateSchema) -> User:
@@ -69,7 +59,7 @@ class UserDomain(ABCDomain):
         try:
             return create_user(self.session, User(**user_to_create))
         except IntegrityError:
-            raise DomainError("user-already-exists")
+            raise DomainError("user_already_exists")
 
     def update(self, user: User) -> User:
         pass
@@ -83,25 +73,26 @@ class UserDomain(ABCDomain):
         )
 
     def verify_email(self, user: UserInDbSchema, code: int) -> User:
-        if user.is_email_verified:
-            raise DomainError("email-already-verified")
-
-        code_obj = get_verification_code(self.session, user.id, code)
-        if code_obj is None:
-            raise DomainError("invalid-verification-code")
+        try:
+            code_obj = get_verification_code(self.session, user.id, code)
+        except NoResultFound:
+            raise DomainError("verification_code_not_found")
         if code_obj.expires_at < datetime.now(tz=code_obj.expires_at.tzinfo):
-            raise DomainError("invalid-verification-code")
+            raise DomainError("expired_verification_code")
 
         return use_verification_code(self.session, code_obj)
 
     def login(self, email: str, password: str) -> tuple[User, str]:
-        user = get_user_by_email(self.session, email)
+        try:
+            user = get_user_by_email(self.session, email)
+        except NoResultFound:
+            raise DomainError("invalid_credentials")
+
         if (
-            (user is None)
-            or (user.is_email_verified is False)
-            or (verify_password(password, user.password) is False)
+            user.is_email_verified is False
+            or verify_password(password, user.password) is False
         ):
-            raise DomainError("invalid-credentials")
+            raise DomainError("invalid_credentials")
 
         return user, self.make_token(user, "access")
 
@@ -109,7 +100,7 @@ class UserDomain(ABCDomain):
         try:
             expiration_timedelta = getattr(settings.jwt, f"{type}_expiration")
         except AttributeError:
-            raise DomainError("invalid-token-type")
+            raise DomainError("invalid_token_type")
 
         return create_jwt_token(
             user_id=user.id,

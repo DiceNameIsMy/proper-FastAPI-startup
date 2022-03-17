@@ -33,8 +33,8 @@ def get_user_by_id(
 ):
     try:
         return user_domain.get_by_id(user_id)
-    except DomainError as e:
-        raise exceptions.NotFound(detail=str(e))
+    except DomainError:
+        raise exceptions.NotFound(detail="user_not_found")
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -45,11 +45,11 @@ def delete_user_by_id(
 ):
     try:
         requested_user = user_domain.get_by_id(user_id)
-    except DomainError as e:
-        raise exceptions.NotFound(detail=str(e))
+    except DomainError:
+        raise exceptions.NotFound(detail="user_not_found")
 
     if requested_user.id != auth.user.id:
-        raise exceptions.PermissionDenied(detail="can-not-delete-other-user")
+        raise exceptions.PermissionDenied(detail="can_not_delete_other_user")
 
     user_domain.delete(requested_user.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

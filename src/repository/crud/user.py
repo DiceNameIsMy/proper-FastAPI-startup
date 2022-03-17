@@ -7,17 +7,17 @@ from utils.hashing import generate_verification_code
 
 
 def get_users(
-    session: Session, offset: int, limit: int, filters: list = []
+    session: Session, offset: int, limit: int, filters: dict = {}
 ) -> list[User]:
-    return session.query(User).filter(*filters).offset(offset).limit(limit).all()
+    return session.query(User).filter_by(**filters).offset(offset).limit(limit).all()
 
 
-def get_user_by_id(session: Session, user_id: int) -> User | None:
-    return session.query(User).filter(User.id == user_id).first()
+def get_user_by_id(session: Session, user_id: int) -> User:
+    return session.query(User).filter_by(id=user_id).one()
 
 
-def get_user_by_email(session: Session, email: str) -> User | None:
-    return session.query(User).filter(User.email == email).first()
+def get_user_by_email(session: Session, email: str) -> User:
+    return session.query(User).filter_by(email=email).one()
 
 
 def create_user(session: Session, user: User) -> User:
@@ -31,14 +31,8 @@ def delete_user(session: Session, user: User) -> None:
     session.commit()
 
 
-def get_verification_code(
-    session: Session, user_id: int, code: int
-) -> VerificationCode | None:
-    return (
-        session.query(VerificationCode)
-        .filter(VerificationCode.user_id == user_id, VerificationCode.code == code)
-        .first()
-    )
+def get_verification_code(session: Session, user_id: int, code: int) -> VerificationCode:
+    return session.query(VerificationCode).filter_by(user_id=user_id, code=code).one()
 
 
 def create_verification_code(
