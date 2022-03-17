@@ -23,7 +23,10 @@ router = APIRouter()
 
 
 @router.post(
-    "/signup", response_model=SignedUpUserSchema, status_code=status.HTTP_201_CREATED
+    "/signup",
+    response_model=SignedUpUserSchema,
+    status_code=status.HTTP_201_CREATED,
+    description="Create user and send verification code to email",
 )
 async def signup(
     new_user: UserToCreateSchema,
@@ -31,6 +34,7 @@ async def signup(
     user_domain: UserDomain = Depends(get_user_domain),
     email_server: EmailServer = Depends(get_email_server),
 ):
+
     try:
         created_user, code, token = user_domain.signup(new_user)
     except DomainError:
@@ -44,7 +48,11 @@ async def signup(
     return SignedUpUserSchema(user=created_user, token=token)
 
 
-@router.post("/signup/verify", response_model=PublicUserSchema)
+@router.post(
+    "/signup/verify",
+    response_model=PublicUserSchema,
+    description="Verify user that has not yet verified his email",
+)
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Depends(authenticate_verify_email_token),
@@ -64,7 +72,11 @@ def signup_verify(
     return user
 
 
-@router.post("/login", response_model=TokenSchema, status_code=status.HTTP_200_OK)
+@router.post(
+    "/login",
+    response_model=TokenSchema,
+    description="Obtain JWT token to access API as authorized user",
+)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     user_domain: UserDomain = Depends(get_user_domain),
