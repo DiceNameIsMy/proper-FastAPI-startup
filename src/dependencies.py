@@ -1,5 +1,3 @@
-from typing import Type
-
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -14,16 +12,10 @@ from repository.database import SessionLocal
 from repository.crud.user import get_user_by_id
 from domain.user import UserDomain
 from utils.authentication import decode_jwt_token
-from utils.email import EmailServerProtocol, EmailServer, FakeEmailServer
 import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")
-
-EmailServerClass: Type = (
-    EmailServer if settings.email.is_configured else FakeEmailServer
-)
-email_server: EmailServerProtocol = EmailServerClass(**settings.email.kwargs)
 
 
 def get_db_session():
@@ -65,10 +57,6 @@ def authenticate_verify_email_token(
     if auth.token_payload.get("type") != "verify-email":
         raise exceptions.bad_credentials
     return auth
-
-
-def get_email_server() -> EmailServerProtocol:
-    return email_server
 
 
 def get_user_domain(session: Session = Depends(get_db_session)) -> UserDomain:

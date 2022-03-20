@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
+
+from settings import settings
 from domain.user import UserDomain
 from domain import DomainError
 
 from dependencies import (
     authenticate_verify_email_token,
-    get_email_server,
     get_user_domain,
 )
 from schemas.auth import (
@@ -15,7 +16,7 @@ from schemas.auth import (
     UserVerificationCodeSchema,
 )
 from schemas.user import UserToCreateSchema, PublicUserSchema
-from utils.email import EmailServerProtocol
+from utils.email import send_mail
 import exceptions
 
 
@@ -32,7 +33,6 @@ async def signup(
     new_user: UserToCreateSchema,
     background_tasks: BackgroundTasks,
     user_domain: UserDomain = Depends(get_user_domain),
-    email_server: EmailServerProtocol = Depends(get_email_server),
 ):
     try:
         created_user, code, token = user_domain.signup(new_user)
@@ -41,8 +41,15 @@ async def signup(
             status_code=status.HTTP_400_BAD_REQUEST, detail="email_is_taken"
         )
 
+    subject = "Verify your email"
+    body = f"Please verify your email by entering the following code: {code}"
     background_tasks.add_task(
-        email_server.send_verification_code, created_user.email, code.code
+        send_mail,
+        created_user.email,
+        subject,
+        body,
+        **settings.email.dict(),
+        fake_send=(not settings.email.is_configured),
     )
     return SignedUpUserSchema(user=created_user, token=token)
 
