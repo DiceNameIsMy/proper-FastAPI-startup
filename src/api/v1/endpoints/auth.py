@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from domain.user import UserDomain
@@ -21,7 +19,6 @@ from utils.email import EmailServerProtocol
 import exceptions
 
 
-log = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -37,7 +34,6 @@ async def signup(
     user_domain: UserDomain = Depends(get_user_domain),
     email_server: EmailServerProtocol = Depends(get_email_server),
 ):
-    log.info("TEST LOG MESSAGE")
     try:
         created_user, code, token = user_domain.signup(new_user)
     except DomainError:
