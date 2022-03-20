@@ -30,7 +30,7 @@ def get_users(
     offset = (page - 1) * page_size
     filters = {}
     if active_users:
-        filters["active"] = True
+        filters["is_active"] = True
     return user_domain.fetch(filters, offset, page_size)
 
 
