@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -19,6 +21,8 @@ from schemas.user import UserToCreateSchema, PublicUserSchema
 from utils.email import send_mail
 import exceptions
 
+
+log = logging.getLogger("api")
 
 router = APIRouter()
 
@@ -51,6 +55,7 @@ async def signup(
         **settings.email.dict(),
         fake_send=(not settings.email.is_configured),
     )
+    log.info(f"Sending signup code to: {created_user.email}")
     return SignedUpUserSchema(user=created_user, token=token)
 
 
@@ -75,6 +80,7 @@ def signup_verify(
             status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_verification_code"
         )
 
+    log.info(f"Verified user: {auth.user.email}")
     return user
 
 

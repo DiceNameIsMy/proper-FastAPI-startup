@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, status, Response
 
 from dependencies import get_user_domain, authenticate_access_token
@@ -7,6 +9,8 @@ from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PaginatedUserSchema, PublicUserSchema
 import exceptions
 
+
+log = logging.getLogger("api")
 
 router = APIRouter()
 
