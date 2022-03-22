@@ -75,7 +75,7 @@ class LoggingSettings(BaseSettings):
         }
 
     @property
-    def handlers(self) -> list:
+    def handlers(self) -> dict:
         return {
             "console": {
                 "formatter": "default",
