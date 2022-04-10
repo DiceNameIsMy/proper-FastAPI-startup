@@ -4,4 +4,5 @@
         "--line-length", "89",
     ],
     "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true
 }
