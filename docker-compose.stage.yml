@@ -7,8 +7,8 @@ services:
       dockerfile: ./compose/stage/Dockerfile
     command: bash -c "
       ls && cd src 
-      && pipenv run alembic upgrade head
-      && pipenv run python main.py"
+      && alembic upgrade head
+      && python main.py"
     env_file:
       - compose/stage/.env
     ports:

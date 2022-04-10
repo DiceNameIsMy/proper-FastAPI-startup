@@ -1,4 +1,4 @@
-FROM python:3.10.2-slim
+FROM python:3.10.4-slim
 
 # install initial dependencies
 RUN pip install --no-cache --upgrade pip pipenv
@@ -12,4 +12,4 @@ WORKDIR ${APP_HOME}
 
 # install dependencies
 COPY Pipfile.lock Pipfile ${APP_HOME}
-RUN pipenv install
+RUN pipenv install --system

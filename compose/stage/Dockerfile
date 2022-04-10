@@ -1,4 +1,4 @@
-FROM python:3.10.2-slim
+FROM python:3.10.4-slim
 
 # install initial dependencies
 RUN pip install --no-cache --upgrade pip pipenv
@@ -16,9 +16,9 @@ RUN addgroup appgroup && useradd -g appgroup appuser && \
 
 # install dependencies
 COPY Pipfile.lock Pipfile ${APP_HOME}/
-RUN pipenv install
+RUN pipenv install --system
 
 COPY src ${APP_HOME}/src
 
 # change to the app user
-# USER appuser
+USER appuser
