@@ -8,7 +8,7 @@ from settings import settings
 from api.v1.router import router as v1_router
 
 
-dictConfig(settings.logging.config)
+# dictConfig(settings.logging.config)
 
 app = FastAPI(title=settings.project_name)
 app.add_middleware(

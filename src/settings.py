@@ -52,7 +52,6 @@ class JWTSettings(BaseSettings):
 
 class LoggingSettings(BaseSettings):
     level: str = "DEBUG"
-    format: str = "%(levelname)s: %(name)s | %(message)s"
     handler: str = "console"
 
     @property
@@ -64,7 +63,7 @@ class LoggingSettings(BaseSettings):
             "formatters": {
                 "default": {
                     "()": "uvicorn.logging.DefaultFormatter",
-                    "fmt": self.format,
+                    "fmt": "%(levelname)s: %(name)s | %(message)s",
                     "datefmt": "%Y-%m-%d %H:%M:%S",
                 }
             },

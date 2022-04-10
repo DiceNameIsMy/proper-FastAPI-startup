@@ -3,8 +3,6 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from pydantic import parse_obj_as
-
 from settings import settings
 from repository.models import User, VerificationCode
 from repository.crud.user import (
@@ -17,7 +15,7 @@ from repository.crud.user import (
     get_verification_code,
     use_verification_code,
 )
-from schemas.user import PaginatedUserSchema, UserInDbSchema, UserToCreateSchema
+from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from domain import ABCDomain, DomainError
 from utils.authentication import create_jwt_token
@@ -41,12 +39,10 @@ class UserDomain(ABCDomain):
 
     def fetch(
         self, filters: dict, page: int = 0, page_size: int = 20
-    ) -> PaginatedUserSchema:
+    ) -> list[User]:
         offset = page * page_size
         users = get_users(self.session, offset, page_size, filters)
-        return PaginatedUserSchema(
-            count=len(users), items=parse_obj_as(list[UserInDbSchema], users)
-        )
+        return users
 
     def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
         user = self.create(new_user)
@@ -73,15 +69,14 @@ class UserDomain(ABCDomain):
             self.session, user, settings.jwt.verify_email_expiration
         )
 
-    def verify_email(self, user: UserInDbSchema, code: int) -> User:
+    def verify_email(self, user: UserInDbSchema, code: int):
         try:
             code_obj = get_verification_code(self.session, user.id, code)
         except NoResultFound:
             raise DomainError("verification_code_not_found")
         if code_obj.expires_at < datetime.now(tz=code_obj.expires_at.tzinfo):
             raise DomainError("expired_verification_code")
-
-        return use_verification_code(self.session, code_obj)
+        use_verification_code(self.session, code_obj)
 
     def login(self, email: str, password: str) -> tuple[User, str]:
         try:

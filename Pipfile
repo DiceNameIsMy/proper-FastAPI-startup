@@ -15,6 +15,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 python-jose = {extras = ["cryptography"], version = "*"}
 python-multipart = "*"
 requests = "*"
+hashids = "*"
 
 [dev-packages]
 flake8 = "*"

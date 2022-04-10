@@ -9,6 +9,7 @@ from domain import DomainError
 
 from dependencies import (
     authenticate_verify_email_token,
+    get_id_hasher,
     get_user_domain,
 )
 from schemas.auth import (
@@ -20,6 +21,7 @@ from schemas.auth import (
 from schemas.user import UserToCreateSchema, PublicUserSchema
 from utils.email import send_mail
 import exceptions
+from utils.hashing import IDHasher
 
 
 log = logging.getLogger("api")
@@ -37,6 +39,7 @@ async def signup(
     new_user: UserToCreateSchema,
     background_tasks: BackgroundTasks,
     user_domain: UserDomain = Depends(get_user_domain),
+    id_hasher: IDHasher = Depends(get_id_hasher),
 ):
     try:
         created_user, code, token = user_domain.signup(new_user)
@@ -46,7 +49,7 @@ async def signup(
         )
 
     subject = "Verify your email"
-    body = f"Please verify your email by entering the following code: {code}"
+    body = f"Please verify your email by entering the following code: {code.code}"
     background_tasks.add_task(
         send_mail,
         created_user.email,
@@ -56,7 +59,9 @@ async def signup(
         fake_send=(not settings.email.is_configured),
     )
     log.info(f"Sending signup code to: {created_user.email}")
-    return SignedUpUserSchema(user=created_user, token=token)
+    return SignedUpUserSchema(
+        user=id_hasher.encode_obj(created_user), token=token
+    )
 
 
 @router.post(
@@ -68,20 +73,21 @@ def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Depends(authenticate_verify_email_token),
     user_domain: UserDomain = Depends(get_user_domain),
+    id_hasher: IDHasher = Depends(get_id_hasher),
 ):
     if auth.user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="email_already_verified"
         )
     try:
-        user = user_domain.verify_email(auth.user, verification_code.code)
+        user_domain.verify_email(auth.user, verification_code.code)
     except DomainError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_verification_code"
         )
 
     log.info(f"Verified user: {auth.user.email}")
-    return user
+    return id_hasher.encode_obj(auth.user)
 
 
 @router.post(

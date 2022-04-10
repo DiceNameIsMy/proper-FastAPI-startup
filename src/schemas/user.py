@@ -12,7 +12,7 @@ class UserInDbSchema(ORMBaseModel):
 
 
 class PublicUserSchema(ORMBaseModel):
-    id: int
+    id: str
     email: EmailStr
     is_email_verified: bool
 

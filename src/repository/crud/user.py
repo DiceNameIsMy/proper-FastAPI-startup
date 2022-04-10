@@ -48,7 +48,7 @@ def create_verification_code(
     return db_code
 
 
-def use_verification_code(session: Session, code: VerificationCode):
+def use_verification_code(session: Session, code: VerificationCode) -> User:
     user: User = code.user
     user.is_email_verified = True
     session.add(user)

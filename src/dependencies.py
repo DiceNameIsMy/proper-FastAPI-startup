@@ -4,18 +4,22 @@ from sqlalchemy.orm.exc import NoResultFound
 from jose import JWTError
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from schemas.auth import AuthenticatedUserSchema
 
 from settings import settings
 from repository.database import SessionLocal
 from repository.crud.user import get_user_by_id
 from domain.user import UserDomain
+
 from utils.authentication import decode_jwt_token
+from utils.hashing import IDHasher, get_hashid
+
 import exceptions
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/login")
+oauth2_scheme = HTTPBearer()
+id_hasher = get_hashid(settings.secret_key, min_length=10)
 
 
 def get_db_session():
@@ -26,12 +30,18 @@ def get_db_session():
         session.close()
 
 
+def get_id_hasher() -> IDHasher:
+    return id_hasher
+
+
 async def authenticate(
     session: Session = Depends(get_db_session),
-    token: str = Depends(oauth2_scheme),
+    token: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
 ) -> AuthenticatedUserSchema:
     try:
-        payload = decode_jwt_token(token, settings.secret_key, settings.jwt.algorithm)
+        payload = decode_jwt_token(
+            token.credentials, settings.secret_key, settings.jwt.algorithm
+        )
     except JWTError:
         raise exceptions.bad_credentials
 
@@ -54,7 +64,8 @@ def authenticate_access_token(
 def authenticate_verify_email_token(
     auth: AuthenticatedUserSchema = Depends(authenticate),
 ) -> AuthenticatedUserSchema:
-    if auth.token_payload.get("type") != "verify-email":
+    print(auth.token_payload.get("type"))
+    if auth.token_payload.get("type") != "verify_email":
         raise exceptions.bad_credentials
     return auth
 
