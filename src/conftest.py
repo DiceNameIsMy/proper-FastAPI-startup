@@ -58,7 +58,7 @@ def user_domain(db: Session) -> UserDomain:
 @pytest.fixture
 def regular_user(user_domain: UserDomain, db: Session):
     user = user_domain.create(
-        UserToCreateSchema(email="regular@test.test", password="password")
+        UserToCreateSchema(email="regular_test@gmail.com", password="password")
     )
     verify_user_by_id(db, user)
     return user
@@ -68,7 +68,7 @@ def regular_user(user_domain: UserDomain, db: Session):
 def email_not_verified_user(user_domain):
     return user_domain.create(
         UserToCreateSchema(
-            email="unverified@test.test",
+            email="unverified_test@gmail.com",
             password="password",
             is_email_verified=False,
         )

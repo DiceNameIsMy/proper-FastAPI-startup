@@ -28,7 +28,7 @@ def test_invalid_password(client: TestClient, regular_user: User):
 def test_user_does_not_exist(client: TestClient):
     response: Response = client.post(
         URI,
-        data={"username": "not_existing@test.test", "password": "password"},
+        data={"username": "not_existing_test@gmail.com", "password": "password"},
     )
     assert response.status_code == 401
 

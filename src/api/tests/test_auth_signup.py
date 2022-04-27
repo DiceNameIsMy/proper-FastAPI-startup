@@ -17,13 +17,13 @@ URI = "/v1/signup"
 def test_valid_user(client: TestClient, db: Session):
     response: Response = client.post(
         URI,
-        json={"email": "valid@test.test", "password": "password"},
+        json={"email": "test@gmail.com", "password": "password"},
         headers={"Content-Type": "Application/json"},
     )
     assert response.status_code == 201, response.json()
-    assert response.json().get("user").get("email") == "valid@test.test", response.json()
+    assert response.json().get("user").get("email") == "test@gmail.com", response.json()
 
-    assert get_user_by_email(db, "valid@test.test")
+    assert get_user_by_email(db, "test@gmail.com")
 
 
 def test_bad_email(client: TestClient, db: Session):
@@ -39,12 +39,12 @@ def test_bad_email(client: TestClient, db: Session):
 
 def test_existing_email(client: TestClient, user_domain: UserDomain):
     user_domain.create(
-        UserToCreateSchema(email="existing_email@test.test", password="password")
+        UserToCreateSchema(email="existing_email_test@gmail.com", password="password")
     )
     response: Response = client.post(
         URI,
-        json={"email": "existing_email@test.test", "password": "password"},
+        json={"email": "existing_email_test@gmail.com", "password": "password"},
         headers={"Content-Type": "Application/json"},
     )
     assert response.status_code == 400
-    assert user_domain.get_by_email("existing_email@test.test")
+    assert user_domain.get_by_email("existing_email_test@gmail.com")
