@@ -35,7 +35,7 @@ if settings.sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.sentry_environment)
+    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.environment)
     app.add_middleware(SentryAsgiMiddleware)
 
 

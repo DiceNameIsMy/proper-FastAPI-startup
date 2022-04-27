@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     log_file: str = ""
 
     sentry_dsn: str = ""
-    sentry_environment: str = ""
+    environment: str = ""
 
     @property
     def allowed_origins(self) -> list[str]:
