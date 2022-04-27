@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from fastapi.testclient import TestClient
 
-from repository.crud.user import get_user_by_email
+from repository.user import get_user_by_email
 from domain.user import UserDomain
 from schemas.user import UserToCreateSchema
 

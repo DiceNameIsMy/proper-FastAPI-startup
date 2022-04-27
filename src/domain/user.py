@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from settings import settings
 from repository.models import User, VerificationCode
-from repository.crud.user import (
+from repository.user import (
     create_user,
     get_user_by_email,
     get_user_by_id,

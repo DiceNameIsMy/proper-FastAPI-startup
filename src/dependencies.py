@@ -9,7 +9,7 @@ from schemas.auth import AuthenticatedUserSchema
 
 from settings import settings
 from repository.database import SessionLocal
-from repository.crud.user import get_user_by_id
+from repository.user import get_user_by_id
 from domain.user import UserDomain
 
 from utils.authentication import decode_jwt_token
