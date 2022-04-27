@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_file: str = ""
 
+    sentry_dsn: str = ""
+    sentry_environment: str = ""
+
     @property
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]

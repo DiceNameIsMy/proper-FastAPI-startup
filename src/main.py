@@ -31,6 +31,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+if settings.sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+
+    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.sentry_environment)
+    app.add_middleware(SentryAsgiMiddleware)
+
 
 app.include_router(
     router, prefix=f"/v{settings.api_version}", tags=[settings.api_version]

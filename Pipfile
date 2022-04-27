@@ -17,6 +17,7 @@ python-multipart = "*"
 requests = "*"
 hashids = "*"
 loguru = "*"
+sentry-sdk = "*"
 
 [dev-packages]
 flake8 = "*"
