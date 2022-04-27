@@ -50,49 +50,6 @@ class JWTSettings(BaseSettings):
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
 
 
-class LoggingSettings(BaseSettings):
-    level: str = "DEBUG"
-    handler: str = "console"
-
-    @property
-    def config(self) -> dict:
-        return {
-            "version": 1,
-            "level": self.level,
-            "disable_existing_loggers": False,
-            "formatters": {
-                "default": {
-                    "()": "uvicorn.logging.DefaultFormatter",
-                    "fmt": "%(levelname)s: %(name)s | %(message)s",
-                    "datefmt": "%Y-%m-%d %H:%M:%S",
-                }
-            },
-            "loggers": {
-                "api": {"handlers": [self.handler], "level": self.level},
-            },
-            "handlers": self.handlers,
-        }
-
-    @property
-    def handlers(self) -> dict:
-        return {
-            "console": {
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",
-            },
-            "file": {
-                "formatter": "default",
-                "class": "logging.FileHandler",
-                "filename": "api.log",
-                "mode": "w",
-            }
-        }
-
-    class Config:
-        env_prefix = "API_LOGGING_"
-
-
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
 
@@ -101,6 +58,9 @@ class Settings(BaseSettings):
     secret_key: str = "secret"
     allowed_origins_str: str = "*"
 
+    log_level: str = "INFO"
+    log_file: str = ""
+
     @property
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
@@ -108,7 +68,6 @@ class Settings(BaseSettings):
     db: DBSettings = DBSettings()
     email: EmailSettings = EmailSettings()
     jwt: JWTSettings = JWTSettings()
-    logging: LoggingSettings = LoggingSettings()
 
     class Config:
         env_prefix = "API_"

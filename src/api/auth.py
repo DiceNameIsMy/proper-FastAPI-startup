@@ -1,5 +1,4 @@
-import logging
-
+from loguru import logger
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -23,8 +22,6 @@ from utils.email import send_mail
 import exceptions
 from utils.hashing import IDHasher
 
-
-log = logging.getLogger("api")
 
 router = APIRouter()
 
@@ -58,7 +55,7 @@ async def signup(
         **settings.email.dict(),
         fake_send=(not settings.email.is_configured),
     )
-    log.info(f"Sending signup code to: {created_user.email}")
+    logger.info(f"Sending signup code to: {created_user.email}")
     return SignedUpUserSchema(
         user=id_hasher.encode_obj(created_user), token=token
     )
@@ -86,7 +83,7 @@ def signup_verify(
             status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_verification_code"
         )
 
-    log.info(f"Verified user: {auth.user.email}")
+    logger.info(f"Verified user: {auth.user.email}")
     return id_hasher.encode_obj(auth.user)
 
 
