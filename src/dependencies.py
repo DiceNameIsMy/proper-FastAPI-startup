@@ -64,7 +64,6 @@ def authenticate_access_token(
 def authenticate_verify_email_token(
     auth: AuthenticatedUserSchema = Depends(authenticate),
 ) -> AuthenticatedUserSchema:
-    print(auth.token_payload.get("type"))
     if auth.token_payload.get("type") != "verify_email":
         raise exceptions.bad_credentials
     return auth

@@ -1,11 +1,9 @@
-from logging.config import dictConfig
-
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from settings import settings
 
-from api.v1.router import router as v1_router
+from api.router import router
 
 
 # dictConfig(settings.logging.config)
@@ -19,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(v1_router, prefix="/v1", tags=["v1"])
+app.include_router(router, prefix="/v1", tags=["v1"])
 
 
 if __name__ == "__main__":
