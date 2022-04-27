@@ -4,7 +4,7 @@ from jose import jwt
 
 
 def create_jwt_token(
-    user_id: int,
+    user_id_hash: str,
     expiration_timedelta: timedelta,
     key: str,
     algorithm: str | list[str],
@@ -12,7 +12,7 @@ def create_jwt_token(
 ) -> str:
     expire = datetime.utcnow() + expiration_timedelta
     to_encode = {
-        "sub": str(user_id),
+        "sub": user_id_hash,
         "exp": expire,
         "type": type,
     }

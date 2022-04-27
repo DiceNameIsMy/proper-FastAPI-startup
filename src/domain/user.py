@@ -99,7 +99,7 @@ class UserDomain(ABCDomain):
             raise DomainError("invalid_token_type")
 
         return create_jwt_token(
-            user_id=user.id,
+            user_id_hash=self.id_hasher.encode(user.id),
             expiration_timedelta=expiration_timedelta,
             key=settings.secret_key,
             algorithm=settings.jwt.algorithm,

@@ -13,6 +13,7 @@ from domain.user import UserDomain
 from schemas.user import UserToCreateSchema
 
 from main import app
+from dependencies import id_hasher
 from utils.authentication import create_jwt_token
 
 
@@ -52,7 +53,7 @@ def db():
 
 @pytest.fixture
 def user_domain(db: Session) -> UserDomain:
-    return UserDomain(db)
+    return UserDomain(db, id_hasher)
 
 
 @pytest.fixture
@@ -91,7 +92,7 @@ def email_already_verified_user(db: Session, email_not_verified_user: User) -> U
 @pytest.fixture
 def email_not_verified_user_signup_token(email_not_verified_user) -> str:
     return create_jwt_token(
-        user_id=email_not_verified_user.id,
+        user_id_hash=id_hasher.encode(email_not_verified_user.id),
         expiration_timedelta=settings.jwt.verify_email_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,

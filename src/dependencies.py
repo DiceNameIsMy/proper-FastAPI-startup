@@ -37,6 +37,7 @@ def get_id_hasher() -> IDHasher:
 async def authenticate(
     session: Session = Depends(get_db_session),
     token: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
+    id_hasher: IDHasher = Depends(get_id_hasher),
 ) -> AuthenticatedUserSchema:
     try:
         payload = decode_jwt_token(
@@ -45,7 +46,8 @@ async def authenticate(
     except JWTError:
         raise exceptions.bad_credentials
 
-    user_id = int(payload.get("sub", 0))
+    # TODO might raise unexpected exception
+    user_id = id_hasher.decode(payload.get("sub", ""))
     try:
         user = get_user_by_id(session, user_id)
         return AuthenticatedUserSchema(user=user, token_payload=payload)
@@ -69,5 +71,8 @@ def authenticate_verify_email_token(
     return auth
 
 
-def get_user_domain(session: Session = Depends(get_db_session)) -> UserDomain:
-    return UserDomain(session=session)
+def get_user_domain(
+    session: Session = Depends(get_db_session),
+    id_hasher: IDHasher = Depends(get_id_hasher),
+) -> UserDomain:
+    return UserDomain(session=session, id_hasher=id_hasher)
