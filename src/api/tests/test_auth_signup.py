@@ -9,9 +9,10 @@ from fastapi.testclient import TestClient
 from repository.user import get_user_by_email
 from domain.user import UserDomain
 from schemas.user import UserToCreateSchema
+from settings import settings
 
 
-URI = "/v1/signup"
+URI = f"/v{settings.api_version}/signup"
 
 
 def test_valid_user(client: TestClient, db: Session):

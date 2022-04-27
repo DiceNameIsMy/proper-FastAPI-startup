@@ -3,9 +3,10 @@ from requests.models import Response
 from fastapi.testclient import TestClient
 
 from repository.models import User
+from settings import settings
 
 
-URI = "/v1/login"
+URI = f"/v{settings.api_version}/login"
 
 
 def test_valid_user(client: TestClient, regular_user: User):

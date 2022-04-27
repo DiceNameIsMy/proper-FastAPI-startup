@@ -32,7 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/v1", tags=["v1"])
+app.include_router(
+    router, prefix=f"/v{settings.api_version}", tags=[settings.api_version]
+)
 
 if __name__ == "__main__":
     import uvicorn

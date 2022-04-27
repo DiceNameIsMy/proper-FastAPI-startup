@@ -52,6 +52,7 @@ class JWTSettings(BaseSettings):
 
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
+    api_version: str = "1"
 
     host: str = "localhost"
     port: int = 8000

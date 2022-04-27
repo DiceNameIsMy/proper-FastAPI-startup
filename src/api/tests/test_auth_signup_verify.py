@@ -9,9 +9,10 @@ from fastapi.testclient import TestClient
 
 from repository.models import User, VerificationCode
 from repository.user import get_user_by_email, get_verification_code
+from settings import settings
 
 
-URI = "/v1/signup/verify"
+URI = f"/v{settings.api_version}/signup/verify"
 
 
 def test_valid_code(
