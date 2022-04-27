@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, Response
 
 from dependencies import get_id_hasher, get_user_domain, authenticate_access_token
 from domain import DomainError
-from domain.user.user import UserDomain
+from domain.user import UserDomain
 from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PaginatedUserSchema, PublicUserSchema
 import exceptions
