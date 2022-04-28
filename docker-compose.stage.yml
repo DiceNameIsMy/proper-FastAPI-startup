@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: ./compose/stage/Dockerfile
     command: bash -c "
-      ls && cd src 
+      cd src
       && alembic upgrade head
       && python main.py"
     env_file:
