@@ -10,7 +10,7 @@ from repository.models import User, VerificationCode
 from settings import settings
 from repository.database import SessionLocal, Base
 from domain.user import UserDomain
-from schemas.user import UserToCreateSchema
+from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from main import app
 from dependencies import id_hasher
@@ -18,12 +18,6 @@ from utils.authentication import create_jwt_token
 
 
 meta = MetaData()
-
-
-def verify_user_by_id(db: Session, user: User):
-    db.query(User).filter(User.id == user.id).update({"is_email_verified": True})
-    db.commit()
-    db.refresh(user)
 
 
 @pytest.fixture(autouse=True)
@@ -57,16 +51,7 @@ def user_domain(db: Session) -> UserDomain:
 
 
 @pytest.fixture
-def regular_user(user_domain: UserDomain, db: Session):
-    user = user_domain.create(
-        UserToCreateSchema(email="regular_test@gmail.com", password="password")
-    )
-    verify_user_by_id(db, user)
-    return user
-
-
-@pytest.fixture
-def email_not_verified_user(user_domain):
+def unverified_user(user_domain: UserDomain):
     return user_domain.create(
         UserToCreateSchema(
             email="unverified_test@gmail.com",
@@ -77,24 +62,42 @@ def email_not_verified_user(user_domain):
 
 
 @pytest.fixture
-def email_not_verified_user_verification_code(
-    user_domain: UserDomain, email_not_verified_user: User
+def unverified_user_verification_code(
+    user_domain: UserDomain, unverified_user: User
 ) -> VerificationCode:
-    return user_domain.create_verification_code(email_not_verified_user)
+    return user_domain.create_verification_code(unverified_user)
 
 
 @pytest.fixture
-def email_already_verified_user(db: Session, email_not_verified_user: User) -> User:
-    verify_user_by_id(db, email_not_verified_user)
-    return email_not_verified_user
-
-
-@pytest.fixture
-def email_not_verified_user_signup_token(email_not_verified_user) -> str:
+def unverified_user_signup_token(unverified_user) -> str:
     return create_jwt_token(
-        user_id_hash=id_hasher.encode(email_not_verified_user.id),
+        user_id_hash=id_hasher.encode(unverified_user.id),
         expiration_timedelta=settings.jwt.verify_email_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,
         type="verify_email",
+    )
+
+
+@pytest.fixture
+def verified_user(
+    user_domain: UserDomain,
+    unverified_user: User,
+    unverified_user_verification_code: VerificationCode,
+) -> User:
+    user_domain.verify_email(
+        UserInDbSchema.from_orm(unverified_user),
+        unverified_user_verification_code.code,
+    )
+    return unverified_user
+
+
+@pytest.fixture
+def user_auth_token(verified_user) -> str:
+    return create_jwt_token(
+        user_id_hash=id_hasher.encode(verified_user.id),
+        expiration_timedelta=settings.jwt.verify_email_expiration,
+        key=settings.secret_key,
+        algorithm=settings.jwt.algorithm,
+        type="access",
     )

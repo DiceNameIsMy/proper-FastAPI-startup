@@ -9,19 +9,19 @@ from settings import settings
 URI = f"/v{settings.api_version}/login"
 
 
-def test_valid_user(client: TestClient, regular_user: User):
+def test_valid_user(client: TestClient, verified_user: User):
     response: Response = client.post(
         URI,
-        data={"username": regular_user.email, "password": "password"},
+        data={"username": verified_user.email, "password": "password"},
     )
     assert response.json().get("token")
     assert response.status_code == 200
 
 
-def test_invalid_password(client: TestClient, regular_user: User):
+def test_invalid_password(client: TestClient, verified_user: User):
     response: Response = client.post(
         URI,
-        data={"username": regular_user.email, "password": "bad_password"},
+        data={"username": verified_user.email, "password": "bad_password"},
     )
     assert response.status_code == 401
 
@@ -34,9 +34,9 @@ def test_user_does_not_exist(client: TestClient):
     assert response.status_code == 401
 
 
-def test_not_verified_user(client: TestClient, email_not_verified_user: User):
+def test_not_verified_user(client: TestClient, unverified_user: User):
     response: Response = client.post(
         URI,
-        data={"username": email_not_verified_user.email, "password": "bad_password"},
+        data={"username": unverified_user.email, "password": "bad_password"},
     )
     assert response.status_code == 401
