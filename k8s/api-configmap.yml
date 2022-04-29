@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+data:
+  pg_host: pg
+  pg_port: "5432"
+  pg_sslmode: disable

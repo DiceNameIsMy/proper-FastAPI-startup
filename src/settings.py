@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     api_version: str = "1"
 
     host: str = "localhost"
-    port: int = 8000
+    port: str = "8000"
     secret_key: str = "secret"
     allowed_origins_str: str = "*"
 
