@@ -24,6 +24,19 @@ def get_profile(
     return id_hasher.encode_obj(auth.user)
 
 
+@router.delete(
+    "/profile",
+    response_model=PublicUserSchema,
+    description="Delete profile",
+)
+def delete_profile(
+    auth: AuthenticatedUserSchema = Depends(authenticate_access_token),
+    user_domain: UserDomain = Depends(get_user_domain),
+):
+    user_domain.delete(auth.user.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/users", response_model=PaginatedUserSchema)
 def get_users(
     page: int = 1,
@@ -55,26 +68,3 @@ def get_user_by_id(
         raise exceptions.NotFound(detail="user_not_found")
 
     return id_hasher.encode_obj(user)
-
-
-@router.delete(
-    "/users/{user_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    description="Delete user. You can only delete yourself",
-)
-def delete_user_by_id(
-    user_id: str,
-    auth: AuthenticatedUserSchema = Depends(authenticate_access_token),
-    user_domain: UserDomain = Depends(get_user_domain),
-    id_hasher: IDHasher = Depends(get_id_hasher),
-):
-    try:
-        requested_user = user_domain.get_by_id(id_hasher.decode(user_id))
-    except DomainError:
-        raise exceptions.NotFound(detail="user_not_found")
-
-    if requested_user.id != auth.user.id:
-        raise exceptions.PermissionDenied(detail="can_not_delete_other_user")
-
-    user_domain.delete(requested_user)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)

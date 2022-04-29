@@ -26,8 +26,8 @@ def create_user(session: Session, user: User) -> User:
     return user
 
 
-def delete_user(session: Session, user: User) -> None:
-    session.delete(user)
+def delete_user(session: Session, user_id: int) -> None:
+    session.query(User).filter_by(id=user_id).delete()
     session.commit()
 
 

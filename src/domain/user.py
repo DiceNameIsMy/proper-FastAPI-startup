@@ -61,8 +61,8 @@ class UserDomain(ABCDomain):
     def update(self, user: User) -> User:
         pass
 
-    def delete(self, user: User) -> None:
-        delete_user(self.session, user)
+    def delete(self, user_id: int) -> None:
+        delete_user(self.session, user_id)
 
     def create_verification_code(self, user: User) -> VerificationCode:
         return create_verification_code(
