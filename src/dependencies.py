@@ -20,13 +20,8 @@ import exceptions
 
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="token",
-    scopes={
-        "profile:read": "Access current user",
-        "profile:edit": "Edit current user",
-        "profile:verify": "Verify email",
-        "token:refresh": "Refresh token",
-    },
+    tokenUrl=f"v{settings.api_version}/login",
+    scopes=settings.auth.public_scopes,
 )
 id_hasher = get_hashid(settings.secret_key, min_length=10)
 
@@ -56,7 +51,7 @@ async def authenticate(
 
     try:
         payload = TokenDataSchema(
-            **decode_jwt_token(token, settings.secret_key, settings.jwt.algorithm)
+            **decode_jwt_token(token, settings.secret_key, settings.auth.algorithm)
         )
         user_id = id_hasher.decode(payload.sub)
         user = get_user_by_id(session, user_id)

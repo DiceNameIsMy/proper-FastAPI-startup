@@ -96,10 +96,12 @@ def login(
 ):
     try:
         _, token = user_domain.login(
-            form_data.username, form_data.password, form_data.scopes
+            form_data.username,
+            form_data.password,
+            form_data.scopes,
         )
     except DomainError:
         raise exceptions.invalid_credentials
 
     logger.info(f"Logged in user: {form_data.username}")
-    return TokenSchema(token=token)
+    return TokenSchema(access_token=token, token_type="bearer")

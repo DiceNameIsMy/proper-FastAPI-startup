@@ -44,10 +44,15 @@ class EmailSettings(BaseSettings):
         env_prefix = "API_EMAIL_"
 
 
-class JWTSettings(BaseSettings):
+class AuthSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
+
+    public_scopes: dict[str, str] = {
+        "profile:read": "Access current user",
+        "profile:edit": "Edit current user",
+    }
 
 
 class Settings(BaseSettings):
@@ -71,7 +76,7 @@ class Settings(BaseSettings):
 
     db: DBSettings = DBSettings()
     email: EmailSettings = EmailSettings()
-    jwt: JWTSettings = JWTSettings()
+    auth: AuthSettings = AuthSettings()
 
     class Config:
         env_prefix = "API_"

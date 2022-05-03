@@ -3,7 +3,8 @@ from .user import PublicUserSchema, UserInDbSchema
 
 
 class TokenSchema(ORMBaseModel):
-    token: str
+    access_token: str
+    token_type: str
 
 
 class TokenDataSchema(ORMBaseModel):

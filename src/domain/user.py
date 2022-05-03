@@ -64,7 +64,7 @@ class UserDomain(ABCDomain):
 
     def create_verification_code(self, user: User) -> VerificationCode:
         return create_verification_code(
-            self.session, user, settings.jwt.verify_email_expiration
+            self.session, user, settings.auth.verify_email_expiration
         )
 
     def verify_email(self, user: UserInDbSchema, code: int):
@@ -94,7 +94,7 @@ class UserDomain(ABCDomain):
 
     def make_token(self, user: User, type: str, scopes: list[str] = []) -> str:
         try:
-            expiration_timedelta = getattr(settings.jwt, f"{type}_expiration")
+            expiration_timedelta = getattr(settings.auth, f"{type}_expiration")
         except AttributeError:
             raise DomainError("invalid_token_type")
 
@@ -102,6 +102,6 @@ class UserDomain(ABCDomain):
             user_id_hash=self.id_hasher.encode(user.id),
             expiration_timedelta=expiration_timedelta,
             key=settings.secret_key,
-            algorithm=settings.jwt.algorithm,
+            algorithm=settings.auth.algorithm,
             scopes=scopes,
         )

@@ -72,9 +72,9 @@ def unverified_user_verification_code(
 def unverified_user_signup_token(unverified_user) -> str:
     return create_jwt_token(
         user_id_hash=id_hasher.encode(unverified_user.id),
-        expiration_timedelta=settings.jwt.verify_email_expiration,
+        expiration_timedelta=settings.auth.verify_email_expiration,
         key=settings.secret_key,
-        algorithm=settings.jwt.algorithm,
+        algorithm=settings.auth.algorithm,
         scopes=["profile:verify"],
     )
 
@@ -96,8 +96,8 @@ def verified_user(
 def user_auth_token(verified_user) -> str:
     return create_jwt_token(
         user_id_hash=id_hasher.encode(verified_user.id),
-        expiration_timedelta=settings.jwt.verify_email_expiration,
+        expiration_timedelta=settings.auth.verify_email_expiration,
         key=settings.secret_key,
-        algorithm=settings.jwt.algorithm,
+        algorithm=settings.auth.algorithm,
         scopes=["profile:read", "profile:edit"],
     )
