@@ -31,7 +31,7 @@ def test_valid_code(
             "Authorization": f"Bearer {unverified_user_signup_token}",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     assert get_user_by_email(db, unverified_user.email).is_email_verified
 
     with pytest.raises(NoResultFound):
@@ -54,7 +54,7 @@ def test_already_verified(
             "Authorization": f"Bearer {unverified_user_signup_token}",
         },
     )
-    assert response.status_code == 400
+    assert response.status_code == 400, response.json()
     assert get_user_by_email(db, verified_user.email).is_email_verified
     with pytest.raises(NoResultFound):
         get_verification_code(db, verified_user.id, code)

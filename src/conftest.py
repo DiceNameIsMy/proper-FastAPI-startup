@@ -75,7 +75,7 @@ def unverified_user_signup_token(unverified_user) -> str:
         expiration_timedelta=settings.jwt.verify_email_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,
-        type="verify_email",
+        scopes=["profile:verify"],
     )
 
 
@@ -99,5 +99,5 @@ def user_auth_token(verified_user) -> str:
         expiration_timedelta=settings.jwt.verify_email_expiration,
         key=settings.secret_key,
         algorithm=settings.jwt.algorithm,
-        type="access",
+        scopes=["profile:read", "profile:edit"],
     )

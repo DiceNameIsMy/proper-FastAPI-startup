@@ -1,5 +1,5 @@
 from loguru import logger
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Security, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 
 from settings import settings
@@ -7,7 +7,7 @@ from domain.user import UserDomain
 from domain import DomainError
 
 from dependencies import (
-    authenticate_verify_email_token,
+    authenticate,
     get_id_hasher,
     get_user_domain,
 )
@@ -56,9 +56,7 @@ async def signup(
         fake_send=(not settings.email.is_configured),
     )
     logger.info(f"Sending signup code to: {created_user.email}")
-    return SignedUpUserSchema(
-        user=id_hasher.encode_obj(created_user), token=token
-    )
+    return SignedUpUserSchema(user=id_hasher.encode_obj(created_user), token=token)
 
 
 @router.post(
@@ -68,7 +66,7 @@ async def signup(
 )
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
-    auth: AuthenticatedUserSchema = Depends(authenticate_verify_email_token),
+    auth: AuthenticatedUserSchema = Security(authenticate, scopes=["profile:verify"]),
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
@@ -97,8 +95,11 @@ def login(
     user_domain: UserDomain = Depends(get_user_domain),
 ):
     try:
-        _, token = user_domain.login(form_data.username, form_data.password)
+        _, token = user_domain.login(
+            form_data.username, form_data.password, form_data.scopes
+        )
     except DomainError:
         raise exceptions.invalid_credentials
 
+    logger.info(f"Logged in user: {form_data.username}")
     return TokenSchema(token=token)

@@ -2,15 +2,19 @@ from typing import Any, Optional
 from fastapi import HTTPException, status
 
 
-bad_credentials = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
 invalid_credentials = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="invalid-credentials",
 )
+
+
+class BadCredentials(HTTPException):
+    def __init__(
+        self,
+        detail: Any = "Could not validate credentials",
+        headers: Optional[dict[str, Any]] = None,
+    ) -> None:
+        super().__init__(status.HTTP_401_UNAUTHORIZED, detail, headers)
 
 
 class NotFound(HTTPException):

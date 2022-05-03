@@ -25,6 +25,6 @@ def test_valid(
             "Authorization": f"Bearer {user_auth_token}",
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 204, response.json()
     with pytest.raises(DomainError):
         user_domain.get_by_id(user_id)

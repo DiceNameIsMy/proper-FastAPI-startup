@@ -8,13 +8,13 @@ def create_jwt_token(
     expiration_timedelta: timedelta,
     key: str,
     algorithm: str | list[str],
-    type: str = "",
+    scopes: list[str] = [],
 ) -> str:
     expire = datetime.utcnow() + expiration_timedelta
     to_encode = {
         "sub": user_id_hash,
         "exp": expire,
-        "type": type,
+        "scopes": scopes
     }
     encoded_jwt = jwt.encode(to_encode, key, algorithm=algorithm)
     return encoded_jwt

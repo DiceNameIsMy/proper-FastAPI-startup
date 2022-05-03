@@ -37,9 +37,7 @@ class UserDomain(ABCDomain):
         except NoResultFound:
             raise DomainError("user_not_found")
 
-    def fetch(
-        self, filters: dict, page: int = 0, page_size: int = 20
-    ) -> list[User]:
+    def fetch(self, filters: dict, page: int = 0, page_size: int = 20) -> list[User]:
         offset = page * page_size
         users = get_users(self.session, offset, page_size, filters)
         return users
@@ -47,7 +45,7 @@ class UserDomain(ABCDomain):
     def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
         user = self.create(new_user)
         code = self.create_verification_code(user)
-        token = self.make_token(user, "verify_email")
+        token = self.make_token(user, "verify_email", ["profile:verify"])
         return user, code, token
 
     def create(self, user: UserToCreateSchema) -> User:
@@ -78,7 +76,9 @@ class UserDomain(ABCDomain):
             raise DomainError("expired_verification_code")
         use_verification_code(self.session, code_obj)
 
-    def login(self, email: str, password: str) -> tuple[User, str]:
+    def login(
+        self, email: str, password: str, scopes: list[str] = []
+    ) -> tuple[User, str]:
         try:
             user = get_user_by_email(self.session, email)
         except NoResultFound:
@@ -90,9 +90,9 @@ class UserDomain(ABCDomain):
         ):
             raise DomainError("invalid_credentials")
 
-        return user, self.make_token(user, "access")
+        return user, self.make_token(user, "access", scopes)
 
-    def make_token(self, user: User, type: str) -> str:
+    def make_token(self, user: User, type: str, scopes: list[str] = []) -> str:
         try:
             expiration_timedelta = getattr(settings.jwt, f"{type}_expiration")
         except AttributeError:
@@ -103,5 +103,5 @@ class UserDomain(ABCDomain):
             expiration_timedelta=expiration_timedelta,
             key=settings.secret_key,
             algorithm=settings.jwt.algorithm,
-            type=type,
+            scopes=scopes,
         )

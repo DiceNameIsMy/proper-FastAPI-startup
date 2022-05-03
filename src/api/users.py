@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, status, Response
+from fastapi import APIRouter, Depends, Security, status, Response
 
-from dependencies import get_id_hasher, get_user_domain, authenticate_access_token
+from dependencies import get_id_hasher, get_user_domain, authenticate
 from domain import DomainError
 from domain.user import UserDomain
 from schemas.auth import AuthenticatedUserSchema
@@ -18,7 +18,9 @@ router = APIRouter()
     description="Get to know yourself",
 )
 def get_profile(
-    auth: AuthenticatedUserSchema = Depends(authenticate_access_token),
+    auth: AuthenticatedUserSchema = Security(
+        authenticate, scopes=["profile:read"]
+    ),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
     return id_hasher.encode_obj(auth.user)
@@ -30,7 +32,9 @@ def get_profile(
     description="Delete profile",
 )
 def delete_profile(
-    auth: AuthenticatedUserSchema = Depends(authenticate_access_token),
+    auth: AuthenticatedUserSchema = Security(
+        authenticate, scopes=["profile:edit"]
+    ),
     user_domain: UserDomain = Depends(get_user_domain),
 ):
     user_domain.delete(auth.user.id)
