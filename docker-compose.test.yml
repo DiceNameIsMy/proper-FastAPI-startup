@@ -3,6 +3,7 @@ version: "3.8"
 services:
   pg:
     image: postgres:14-alpine
+    container_name: proper-fastapi-startup_test_pg_1
     volumes:
       - pg_data:/var/lib/postgresql/data/
     environment:
