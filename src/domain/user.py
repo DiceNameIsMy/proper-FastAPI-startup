@@ -3,7 +3,11 @@ from datetime import datetime
 from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+
+from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
+
 from modules.jwt.client import JWTClient
+from schemas.auth import TokenDataSchema
 
 from settings import settings
 from repository.models import User, VerificationCode
@@ -108,3 +112,11 @@ class UserDomain(ABCDomain):
             exp=expiration_timedelta,
             scopes=scopes,
         )
+
+    def read_token(self, token: str) -> TokenDataSchema:
+        try:
+            return TokenDataSchema(**self.jwt_client.read_token(token))
+        except ExpiredSignatureError:
+            raise DomainError("token_expired")
+        except (JWTError, JWTClaimsError):
+            raise DomainError("invalid_token")

@@ -13,6 +13,7 @@ from dependencies import (
 )
 from schemas.auth import (
     AuthenticatedUserSchema,
+    RefreshTokenSchema,
     TokenSchema,
     SignedUpUserSchema,
     UserVerificationCodeSchema,
@@ -107,3 +108,27 @@ def login(
 
     logger.info(f"Logged in user: {form_data.username}")
     return TokenSchema(access_token=token, token_type="bearer")
+
+
+@router.post(
+    "/token/refresh",
+    response_model=TokenSchema,
+    description="Refresh JWT token",
+)
+def refresh_token(
+    token: RefreshTokenSchema,
+    user_domain: UserDomain = Depends(get_user_domain),
+    id_hasher: IDHasher = Depends(get_id_hasher),
+):
+    try:
+        token_data = user_domain.read_token(token.refresh_token)
+    except DomainError as e:
+        raise exceptions.BadRequest(str(e))
+
+    try:
+        user = user_domain.get_by_id(id_hasher.decode(token_data.sub))
+    except DomainError:
+        raise exceptions.BadRequest("invalid_token")
+
+    access_token = user_domain.make_token(user, "access", token_data.scopes)
+    return TokenSchema(access_token=access_token, token_type="bearer")

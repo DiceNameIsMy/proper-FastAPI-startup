@@ -64,7 +64,8 @@ async def authenticate(
         payload = TokenDataSchema(**jwt_client.read_token(token))
         user_id = id_hasher.decode(payload.sub)
         user = get_user_by_id(session, user_id)
-    except JWTError:
+    except JWTError as e:
+        logger.trace(f"Authentication failed with exception: {e}")
         raise exceptions.BadCredentials(headers={"WWW-Authenticate": authenticate_value})
     except NoResultFound:
         logger.trace(f"Authentication failed for unknown user {user_id}")
