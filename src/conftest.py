@@ -72,7 +72,7 @@ def unverified_user_signup_token(unverified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(unverified_user.id),
         exp=settings.auth.verify_email_expiration,
-        scopes=[oauth2_scopes.profile_verify[0]],
+        scopes=[oauth2_scopes.profile_verify.name],
     )
 
 
@@ -94,7 +94,7 @@ def user_auth_token(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
         exp=settings.auth.access_expiration,
-        scopes=[oauth2_scopes.profile_read[0], oauth2_scopes.profile_edit[0]],
+        scopes=[oauth2_scopes.profile_read.name, oauth2_scopes.profile_edit.name],
     )
 
 
@@ -103,5 +103,5 @@ def user_refresh_token(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
         exp=settings.auth.verify_email_expiration,
-        scopes=[oauth2_scopes.token_refresh[0]],
+        scopes=[oauth2_scopes.token_refresh.name],
     )

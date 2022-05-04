@@ -20,7 +20,7 @@ router = APIRouter()
 )
 def get_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_read[0]]
+        authenticate, scopes=[oauth2_scopes.profile_read.name]
     ),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
@@ -34,7 +34,7 @@ def get_profile(
 )
 def delete_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_edit[0]]
+        authenticate, scopes=[oauth2_scopes.profile_edit.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
 ):

@@ -1,5 +1,7 @@
 from datetime import timedelta
-from pydantic import BaseSettings, BaseModel, Field
+from enum import Enum
+
+from pydantic import BaseSettings, Field
 
 
 class DBSettings(BaseSettings):
@@ -44,20 +46,24 @@ class EmailSettings(BaseSettings):
         env_prefix = "API_EMAIL_"
 
 
-class AuthScopes(BaseModel):
-    profile_read: tuple[str, str] = "profile:read", "Access current user"
-    profile_edit: tuple[str, str] = "profile:edit", "Edit current user"
-    profile_verify: tuple[str, str] = "profile:verify", "Verify current user"
-    token_refresh: tuple[str, str] = "token:refresh", "Refresh token"
+class AuthScopesEnum(Enum):
+    profile_read = "Access current user"
+    profile_edit = "Edit current user"
+    profile_verify = "Verify current user"
+    token_refresh = "Refresh token"
 
-    _private_scopes: set[str] = {"profile:verify", "token:refresh"}
-
+    @classmethod
     @property
-    def oauth2_format(self) -> dict:
+    def private_scopes(cls) -> set[str]:
+        return {cls.profile_verify.name, cls.token_refresh.name}
+
+    @classmethod
+    @property
+    def oauth2_format(cls) -> dict:
         return {
-            scope[0]: scope[1]
-            for _, scope in self.dict().items()
-            if scope[0] not in self._private_scopes
+            name: obj.value
+            for name, obj in cls.__members__.items()
+            if name not in cls.private_scopes  # type: ignore
         }
 
 
@@ -65,7 +71,7 @@ class AuthSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
-    scopes: AuthScopes = AuthScopes()
+    scopes: type[AuthScopesEnum] = AuthScopesEnum
 
 
 class Settings(BaseSettings):
@@ -96,4 +102,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-oauth2_scopes: AuthScopes = settings.auth.scopes
+oauth2_scopes = settings.auth.scopes

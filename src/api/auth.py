@@ -68,7 +68,7 @@ async def signup(
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_verify[0]]
+        authenticate, scopes=[oauth2_scopes.profile_verify.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),

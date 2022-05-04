@@ -9,7 +9,7 @@ from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 from modules.jwt.client import JWTClient
 from schemas.auth import TokenDataSchema
 
-from settings import settings
+from settings import settings, oauth2_scopes
 from repository.models import User, VerificationCode
 from repository.user import (
     create_user,
@@ -54,7 +54,9 @@ class UserDomain(ABCDomain):
     def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
         user = self.create(new_user)
         code = self.create_verification_code(user)
-        token = self.make_token(user, "verify_email", ["profile:verify"])
+        token = self.make_token(
+            user, "verify_email", scopes=[oauth2_scopes.profile_verify.name]
+        )
         return user, code, token
 
     def create(self, user: UserToCreateSchema) -> User:
