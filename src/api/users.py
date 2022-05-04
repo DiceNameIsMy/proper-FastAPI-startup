@@ -5,6 +5,7 @@ from domain import DomainError
 from domain.user import UserDomain
 from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PaginatedUserSchema, PublicUserSchema
+from settings import oauth2_scopes
 import exceptions
 from utils.hashing import IDHasher
 
@@ -19,7 +20,7 @@ router = APIRouter()
 )
 def get_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=["profile:read"]
+        authenticate, scopes=[oauth2_scopes.profile_read[0]]
     ),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
@@ -33,7 +34,7 @@ def get_profile(
 )
 def delete_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=["profile:edit"]
+        authenticate, scopes=[oauth2_scopes.profile_edit[0]]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
 ):

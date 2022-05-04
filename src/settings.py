@@ -1,5 +1,5 @@
 from datetime import timedelta
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, BaseModel, Field
 
 
 class DBSettings(BaseSettings):
@@ -44,15 +44,28 @@ class EmailSettings(BaseSettings):
         env_prefix = "API_EMAIL_"
 
 
+class AuthScopes(BaseModel):
+    profile_read: tuple[str, str] = "profile:read", "Access current user"
+    profile_edit: tuple[str, str] = "profile:edit", "Edit current user"
+    profile_verify: tuple[str, str] = "profile:verify", "Verify current user"
+    token_refresh: tuple[str, str] = "token:refresh", "Refresh token"
+
+    _private_scopes: set[str] = {"profile:verify", "token:refresh"}
+
+    @property
+    def oauth2_format(self) -> dict:
+        return {
+            scope[0]: scope[1]
+            for _, scope in self.dict().items()
+            if scope[0] not in self._private_scopes
+        }
+
+
 class AuthSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
-
-    public_scopes: dict[str, str] = {
-        "profile:read": "Access current user",
-        "profile:edit": "Edit current user",
-    }
+    scopes: AuthScopes = AuthScopes()
 
 
 class Settings(BaseSettings):
@@ -83,3 +96,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+oauth2_scopes: AuthScopes = settings.auth.scopes

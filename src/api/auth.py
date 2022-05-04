@@ -2,7 +2,7 @@ from loguru import logger
 from fastapi import APIRouter, Depends, HTTPException, Security, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 
-from settings import settings
+from settings import settings, oauth2_scopes
 from domain.user import UserDomain
 from domain import DomainError
 
@@ -66,7 +66,9 @@ async def signup(
 )
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
-    auth: AuthenticatedUserSchema = Security(authenticate, scopes=["profile:verify"]),
+    auth: AuthenticatedUserSchema = Security(
+        authenticate, scopes=[oauth2_scopes.profile_verify[0]]
+    ),
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
