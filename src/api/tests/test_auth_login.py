@@ -14,7 +14,7 @@ def test_valid_user(client: TestClient, verified_user: User):
         URI,
         data={"username": verified_user.email, "password": "password"},
     )
-    assert response.json().get("token")
+    assert response.json().get("access_token")
     assert response.status_code == 200
 
 

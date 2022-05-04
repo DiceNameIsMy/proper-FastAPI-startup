@@ -19,8 +19,8 @@ from schemas.auth import (
 )
 from schemas.user import UserToCreateSchema, PublicUserSchema
 from utils.email import send_mail
-import exceptions
 from utils.hashing import IDHasher
+import exceptions
 
 
 router = APIRouter()

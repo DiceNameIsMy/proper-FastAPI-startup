@@ -13,6 +13,10 @@ class TokenDataSchema(ORMBaseModel):
     scopes: list[str] = []
 
 
+class RefreshTokenSchema(ORMBaseModel):
+    refresh_token: str
+
+
 class AuthenticatedUserSchema(ORMBaseModel):
     """used in dependency for authenticated users"""
 

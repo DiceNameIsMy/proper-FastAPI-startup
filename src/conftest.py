@@ -13,8 +13,7 @@ from domain.user import UserDomain
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from main import app
-from dependencies import id_hasher
-from utils.authentication import create_jwt_token
+from dependencies import id_hasher, jwt_client
 
 
 meta = MetaData()
@@ -47,7 +46,7 @@ def db():
 
 @pytest.fixture
 def user_domain(db: Session) -> UserDomain:
-    return UserDomain(db, id_hasher)
+    return UserDomain(db, id_hasher, jwt_client)
 
 
 @pytest.fixture
@@ -70,11 +69,9 @@ def unverified_user_verification_code(
 
 @pytest.fixture
 def unverified_user_signup_token(unverified_user) -> str:
-    return create_jwt_token(
-        user_id_hash=id_hasher.encode(unverified_user.id),
-        expiration_timedelta=settings.auth.verify_email_expiration,
-        key=settings.secret_key,
-        algorithm=settings.auth.algorithm,
+    return jwt_client.create_token(
+        sub=id_hasher.encode(unverified_user.id),
+        exp=settings.auth.verify_email_expiration,
         scopes=["profile:verify"],
     )
 
@@ -94,10 +91,8 @@ def verified_user(
 
 @pytest.fixture
 def user_auth_token(verified_user) -> str:
-    return create_jwt_token(
-        user_id_hash=id_hasher.encode(verified_user.id),
-        expiration_timedelta=settings.auth.verify_email_expiration,
-        key=settings.secret_key,
-        algorithm=settings.auth.algorithm,
+    return jwt_client.create_token(
+        sub=id_hasher.encode(verified_user.id),
+        exp=settings.auth.verify_email_expiration,
         scopes=["profile:read", "profile:edit"],
     )

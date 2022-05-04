@@ -1,7 +1,9 @@
 from datetime import datetime
 
+from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from modules.jwt.client import JWTClient
 
 from settings import settings
 from repository.models import User, VerificationCode
@@ -18,12 +20,15 @@ from repository.user import (
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from domain import ABCDomain, DomainError
-from utils.authentication import create_jwt_token
-from utils.hashing import get_password_hash, verify_password
+from utils.hashing import IDHasher, get_password_hash, verify_password
 
 
 class UserDomain(ABCDomain):
     model = User
+
+    def __init__(self, session: Session, id_hasher: IDHasher, jwt_client: JWTClient):
+        super().__init__(session, id_hasher)
+        self.jwt_client = jwt_client
 
     def get_by_id(self, user_id: int) -> User:
         try:
@@ -98,10 +103,8 @@ class UserDomain(ABCDomain):
         except AttributeError:
             raise DomainError("invalid_token_type")
 
-        return create_jwt_token(
-            user_id_hash=self.id_hasher.encode(user.id),
-            expiration_timedelta=expiration_timedelta,
-            key=settings.secret_key,
-            algorithm=settings.auth.algorithm,
+        return self.jwt_client.create_token(
+            sub=self.id_hasher.encode(user.id),
+            exp=expiration_timedelta,
             scopes=scopes,
         )
