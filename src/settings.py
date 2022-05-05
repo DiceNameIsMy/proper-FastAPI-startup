@@ -4,7 +4,7 @@ from enum import Enum
 from pydantic import BaseSettings, Field
 
 
-class DBSettings(BaseSettings):
+class PGSettings(BaseSettings):
     host: str = "localhost"
     port: int = 5433
     user: str = "user"
@@ -30,6 +30,24 @@ class DBSettings(BaseSettings):
 
     class Config:
         env_prefix = "API_PG_"
+
+
+class RedisSettings(BaseSettings):
+    host: str = "localhost"
+    port: int = 6379
+    user: str = ""
+    password: str = ""
+    driver: str = Field("redis", const=True)
+
+    @property
+    def url(self) -> str:
+        return (
+            f"{self.driver}://{self.user}:{self.password}@"
+            f"{self.host}:{self.port}"
+        )
+
+    class Config:
+        env_prefix = "API_REDIS_"
 
 
 class EmailSettings(BaseSettings):
@@ -77,6 +95,7 @@ class AuthSettings(BaseSettings):
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
     api_version: str = "1"
+    use_idempotency: bool = False
 
     host: str = "localhost"
     port: str = "8000"
@@ -93,9 +112,10 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
 
-    db: DBSettings = DBSettings()
-    email: EmailSettings = EmailSettings()
-    auth: AuthSettings = AuthSettings()
+    db = PGSettings()
+    redis = RedisSettings()
+    email = EmailSettings()
+    auth = AuthSettings()
 
     class Config:
         env_prefix = "API_"

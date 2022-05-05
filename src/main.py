@@ -35,8 +35,25 @@ if settings.sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
+    logger.info("Applying sentry middleware...")
     sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.environment)
     app.add_middleware(SentryAsgiMiddleware)
+
+if settings.use_idempotency:
+    from aioredis import from_url
+
+    from idempotency_header_middleware import IdempotencyHeaderMiddleware
+    from idempotency_header_middleware.backends import AioredisBackend
+
+    logger.info("Applying idempotency header middleware...")
+
+    redis_conn = from_url(settings.redis.url)
+    app.add_middleware(
+        IdempotencyHeaderMiddleware,
+        backend=AioredisBackend(redis=redis_conn),
+        enforce_uuid4_formatting=True,
+        expiry=60 * 60
+    )
 
 
 app.include_router(

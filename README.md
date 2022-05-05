@@ -2,7 +2,8 @@
 
 My vision of pretty good FastAPI project template to start with. It features -
 - Registration, Sending code to email to verify it, Authentication
-- JWT tokens
+- Oauth2 authorization with JWT tokens
+- Idempotent requests for POST and PATCH
 - HashIds to keep your ID's somewhat secure
 - Simple API to view users
 - Pipenv as dependency control tool

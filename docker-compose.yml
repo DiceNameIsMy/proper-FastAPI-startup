@@ -17,6 +17,12 @@ services:
       - 8000:8000
     depends_on:
       - pg
+    
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass pass
+    ports:
+      - 6379:6380
 
   pg:
     image: postgres:14-alpine

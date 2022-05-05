@@ -18,6 +18,8 @@ requests = "*"
 hashids = "*"
 loguru = "*"
 sentry-sdk = "*"
+asgi-idempotency-header = "*"
+aioredis = "*"
 
 [dev-packages]
 flake8 = "*"
