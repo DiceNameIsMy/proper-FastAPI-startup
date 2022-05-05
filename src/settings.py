@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
 
-    db = PGSettings()
+    pg = PGSettings()
     redis = RedisSettings()
     email = EmailSettings()
     auth = AuthSettings()

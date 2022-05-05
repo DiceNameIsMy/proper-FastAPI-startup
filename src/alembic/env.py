@@ -15,7 +15,7 @@ config = context.config
 
 
 # Update database url
-config.set_main_option('sqlalchemy.url', settings.db.url)
+config.set_main_option('sqlalchemy.url', settings.pg.url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
