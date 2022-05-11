@@ -12,17 +12,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi_sso.sso.google import GoogleSSO
 
-from settings import settings, oauth2_scopes
+from settings import oauth2_scopes
 from domain.user import UserDomain
 from domain import DomainError
 
 from modules.hashid import HashidsClient
+from modules.mailsender import ABCMailSender
 
 from dependencies import (
     authenticate,
     get_id_hasher,
     get_user_domain,
     get_google_sso,
+    get_mailsender,
 )
 from schemas.auth import (
     AuthenticatedUserSchema,
@@ -32,7 +34,6 @@ from schemas.auth import (
     UserVerificationCodeSchema,
 )
 from schemas.user import UserToCreateSchema, PublicUserSchema
-from utils.email import send_mail
 import exceptions
 
 
@@ -78,6 +79,7 @@ async def signup(
     background_tasks: BackgroundTasks,
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: HashidsClient = Depends(get_id_hasher),
+    mailsender: ABCMailSender = Depends(get_mailsender),
 ):
     """Create user and send verification code to email"""
     try:
@@ -89,15 +91,9 @@ async def signup(
 
     subject = "Verify your email"
     body = f"Please verify your email by entering the following code: {code.code}"
-    background_tasks.add_task(
-        send_mail,
-        created_user.email,
-        subject,
-        body,
-        **settings.email.dict(),
-        fake_send=(not settings.email.is_configured),
-    )
+    background_tasks.add_task(mailsender.send, created_user.email, subject, body)
     logger.info(f"Sending signup code to: {created_user.email}")
+
     return SignedUpUserSchema(user=id_hasher.encode_obj(created_user), token=token)
 
 

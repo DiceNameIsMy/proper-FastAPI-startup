@@ -18,6 +18,7 @@ from domain.user import UserDomain
 from modules.jwt import JWTClient
 from modules.hashid import HashidsClient
 from modules.pwd import PwdClient
+from modules.mailsender import ABCMailSender, new_mailsender
 
 import exceptions
 
@@ -33,6 +34,13 @@ jwt_client = JWTClient(
 )
 id_hasher = HashidsClient(settings.secret_key, min_length=10)
 pwd_client = PwdClient()
+mailsender: ABCMailSender = new_mailsender(
+    smtp_server=settings.email.smtp_server,
+    smtp_port=settings.email.smtp_port,
+    address=settings.email.address,
+    password=settings.email.password,
+    fake=(not settings.email.is_configured),
+)
 google_sso = GoogleSSO(
     settings.auth.google_client_id,
     settings.auth.google_client_secret,
@@ -60,6 +68,10 @@ def get_id_hasher() -> HashidsClient:
 
 def get_pwd_client() -> PwdClient:
     return pwd_client
+
+
+def get_mailsender() -> ABCMailSender:
+    return mailsender
 
 
 def get_google_sso() -> GoogleSSO:
