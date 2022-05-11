@@ -1,10 +1,16 @@
+from secrets import randbelow
 from datetime import datetime, timedelta
+
 from pydantic import EmailStr
 
 from sqlalchemy.orm.session import Session
 
 from repository.models import User, SSOAuthorization, VerificationCode
-from utils.hashing import generate_verification_code
+
+
+def generate_verification_code() -> int:
+    """Generate a random 6-digit integer"""
+    return randbelow(900000) + 100000
 
 
 def get_users(

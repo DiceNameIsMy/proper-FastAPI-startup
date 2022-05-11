@@ -9,6 +9,7 @@ from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 
 from modules.jwt.client import JWTClient
 from modules.hashid import HashidsClient
+from modules.pwd import PwdClient
 
 from schemas.auth import TokenDataSchema
 
@@ -29,16 +30,19 @@ from repository.user import (
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from domain import ABCDomain, DomainError
-from utils.hashing import get_password_hash, verify_password
 
 
 class UserDomain(ABCDomain):
     model = User
 
     def __init__(
-        self, session: Session, id_hasher: HashidsClient, jwt_client: JWTClient
+        self,
+        session: Session,
+        id_hasher: HashidsClient,
+        pwd_client: PwdClient,
+        jwt_client: JWTClient,
     ):
-        super().__init__(session, id_hasher)
+        super().__init__(session, id_hasher, pwd_client)
         self.jwt_client = jwt_client
 
     def get_by_id(self, user_id: int) -> User:
@@ -78,7 +82,9 @@ class UserDomain(ABCDomain):
 
     def create(self, user: UserToCreateSchema) -> User:
         user_to_create = user.dict()
-        user_to_create["password"] = get_password_hash(user_to_create["password"])
+        user_to_create["password"] = self.pwd_client.get_password_hash(
+            user_to_create["password"]
+        )
         try:
             return create_user(self.session, User(**user_to_create))
         except IntegrityError:
@@ -115,7 +121,7 @@ class UserDomain(ABCDomain):
 
         if (
             user.is_email_verified is False
-            or verify_password(password, user.password) is False
+            or self.pwd_client.verify_password(password, user.password) is False
         ):
             raise DomainError("invalid_credentials")
 

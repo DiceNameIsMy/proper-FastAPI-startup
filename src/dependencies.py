@@ -17,6 +17,7 @@ from domain.user import UserDomain
 
 from modules.jwt import JWTClient
 from modules.hashid import HashidsClient
+from modules.pwd import PwdClient
 
 import exceptions
 
@@ -31,6 +32,7 @@ jwt_client = JWTClient(
     settings.auth.algorithm,
 )
 id_hasher = HashidsClient(settings.secret_key, min_length=10)
+pwd_client = PwdClient()
 google_sso = GoogleSSO(
     settings.auth.google_client_id,
     settings.auth.google_client_secret,
@@ -54,6 +56,10 @@ def get_jwt_client() -> JWTClient:
 
 def get_id_hasher() -> HashidsClient:
     return id_hasher
+
+
+def get_pwd_client() -> PwdClient:
+    return pwd_client
 
 
 def get_google_sso() -> GoogleSSO:
@@ -96,5 +102,11 @@ def get_user_domain(
     session: Session = Depends(get_db_session),
     id_hasher: HashidsClient = Depends(get_id_hasher),
     jwt_client: JWTClient = Depends(get_jwt_client),
+    pwd_client: PwdClient = Depends(get_pwd_client),
 ) -> UserDomain:
-    return UserDomain(session=session, id_hasher=id_hasher, jwt_client=jwt_client)
+    return UserDomain(
+        session=session,
+        id_hasher=id_hasher,
+        jwt_client=jwt_client,
+        pwd_client=pwd_client,
+    )

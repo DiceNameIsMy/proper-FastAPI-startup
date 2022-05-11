@@ -13,7 +13,7 @@ from domain.user import UserDomain
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from main import app
-from dependencies import id_hasher, jwt_client
+from dependencies import id_hasher, jwt_client, pwd_client
 
 
 meta = MetaData()
@@ -46,7 +46,12 @@ def db():
 
 @pytest.fixture
 def user_domain(db: Session) -> UserDomain:
-    return UserDomain(db, id_hasher, jwt_client)
+    return UserDomain(
+        session=db,
+        id_hasher=id_hasher,
+        pwd_client=pwd_client,
+        jwt_client=jwt_client,
+    )
 
 
 @pytest.fixture
