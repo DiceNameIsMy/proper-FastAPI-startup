@@ -6,6 +6,8 @@ from loguru import logger
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
+from fastapi_sso.sso.google import GoogleSSO
+
 from schemas.auth import AuthenticatedUserSchema, TokenDataSchema
 
 from settings import settings
@@ -22,7 +24,7 @@ import exceptions
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"v{settings.api_version}/login",
-    scopes=settings.auth.scopes.oauth2_format  # type: ignore
+    scopes=settings.auth.scopes.oauth2_format,  # type: ignore
 )
 jwt_client = JWTClient(
     settings.secret_key,
@@ -30,6 +32,13 @@ jwt_client = JWTClient(
     settings.auth.algorithm,
 )
 id_hasher = get_hashid(settings.secret_key, min_length=10)
+google_sso = GoogleSSO(
+    settings.auth.google_client_id,
+    settings.auth.google_client_secret,
+    f"http://localhost:8000/v{settings.api_version}/google/callback",
+    allow_insecure_http=settings.auth.google_allow_http,
+    use_state=False,
+)
 
 
 def get_db_session():
@@ -46,6 +55,10 @@ def get_jwt_client() -> JWTClient:
 
 def get_id_hasher() -> IDHasher:
     return id_hasher
+
+
+def get_google_sso() -> GoogleSSO:
+    return google_sso
 
 
 async def authenticate(

@@ -1,6 +1,16 @@
 from loguru import logger
-from fastapi import APIRouter, Depends, HTTPException, Security, status, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    Security,
+    status,
+    BackgroundTasks,
+)
 from fastapi.security import OAuth2PasswordRequestForm
+
+from fastapi_sso.sso.google import GoogleSSO
 
 from settings import settings, oauth2_scopes
 from domain.user import UserDomain
@@ -10,6 +20,7 @@ from dependencies import (
     authenticate,
     get_id_hasher,
     get_user_domain,
+    get_google_sso,
 )
 from schemas.auth import (
     AuthenticatedUserSchema,
@@ -25,6 +36,37 @@ import exceptions
 
 
 router = APIRouter()
+
+
+@router.get("/google/login")
+async def google_login(google_sso: GoogleSSO = Depends(get_google_sso)):
+    """Generate login url and redirect"""
+    return await google_sso.get_login_redirect()
+
+
+@router.get("/google/callback", response_model=TokenSchema)
+async def google_callback(
+    request: Request,
+    google_sso: GoogleSSO = Depends(get_google_sso),
+    user_domain: UserDomain = Depends(get_user_domain),
+):
+    """Process login response from Google and return user info"""
+    open_id = await google_sso.verify_and_process(request)
+    try:
+        _, token = user_domain.login_by_sso_provider(
+            open_id.id, open_id.provider, open_id.email
+        )
+    except DomainError:
+        try:
+            _, token = user_domain.signup_by_sso_provider(
+                open_id.id, open_id.provider, open_id.email
+            )
+        except DomainError as e:
+            logger.warning(
+                f"Couldn't signup `{open_id.email}`| provider `{open_id.provider}`: {e}"
+            )
+            raise e
+    return TokenSchema(access_token=token, token_type="bearer")
 
 
 @router.post(

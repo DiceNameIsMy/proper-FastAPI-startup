@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
+from pydantic import EmailStr
 
 from sqlalchemy.orm.session import Session
 
-from repository.models import User, VerificationCode
+from repository.models import User, SSOAuthorization, VerificationCode
 from utils.hashing import generate_verification_code
 
 
@@ -20,8 +21,37 @@ def get_user_by_email(session: Session, email: str) -> User:
     return session.query(User).filter_by(email=email).one()
 
 
+def get_user_by_sso_authorization(
+    session: Session, provider_id: str, provider_name: str, email: str
+) -> User:
+    return (
+        session.query(User)
+        .join(SSOAuthorization)
+        .filter(
+            SSOAuthorization.provider_id == provider_id,
+            SSOAuthorization.provider_name == provider_name,
+            User.email == email,
+        )
+        .one()
+    )
+
+
 def create_user(session: Session, user: User) -> User:
     session.add(user)
+    session.commit()
+    return user
+
+
+def create_user_by_sso_authorization(
+    session: Session, provider_id: str, provider_name: str, email: EmailStr
+) -> User:
+    user = User(email=email, password="", is_email_verified=True)
+    sso_auth = SSOAuthorization(
+        provider_id=provider_id, provider_name=provider_name, user=user
+    )
+
+    session.add(user)
+    session.add(sso_auth)
     session.commit()
     return user
 

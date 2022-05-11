@@ -1,4 +1,5 @@
 from datetime import datetime
+from pydantic import EmailStr
 
 from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
@@ -13,8 +14,10 @@ from settings import settings, oauth2_scopes
 from repository.models import User, VerificationCode
 from repository.user import (
     create_user,
+    create_user_by_sso_authorization,
     get_user_by_email,
     get_user_by_id,
+    get_user_by_sso_authorization,
     get_users,
     delete_user,
     create_verification_code,
@@ -59,6 +62,16 @@ class UserDomain(ABCDomain):
         )
         return user, code, token
 
+    def signup_by_sso_provider(
+        self, id: str, name: str, email: EmailStr, scopes: list[str] = []
+    ) -> tuple[User, str]:
+        try:
+            user = create_user_by_sso_authorization(self.session, id, name, email)
+        except IntegrityError:
+            raise DomainError("user_already_exists_or_linked_by_provider")
+
+        return user, self.make_token(user, "access", scopes)
+
     def create(self, user: UserToCreateSchema) -> User:
         user_to_create = user.dict()
         user_to_create["password"] = get_password_hash(user_to_create["password"])
@@ -101,6 +114,16 @@ class UserDomain(ABCDomain):
             or verify_password(password, user.password) is False
         ):
             raise DomainError("invalid_credentials")
+
+        return user, self.make_token(user, "access", scopes)
+
+    def login_by_sso_provider(
+        self, id: str, name: str, email: str, scopes: list[str] = []
+    ) -> tuple[User, str]:
+        try:
+            user = get_user_by_sso_authorization(self.session, id, name, email)
+        except NoResultFound:
+            raise DomainError("user_not_found")
 
         return user, self.make_token(user, "access", scopes)
 

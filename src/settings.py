@@ -89,7 +89,14 @@ class AuthSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
-    scopes: type[AuthScopesEnum] = AuthScopesEnum
+    scopes: type[AuthScopesEnum] = Field(AuthScopesEnum, const=True)
+
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_allow_http: bool = True
+
+    class Config:
+        env_prefix = "API_AUTH_"
 
 
 class Settings(BaseSettings):

@@ -20,6 +20,7 @@ loguru = "*"
 sentry-sdk = "*"
 asgi-idempotency-header = "*"
 aioredis = "*"
+fastapi-sso = "*"
 
 [dev-packages]
 flake8 = "*"
