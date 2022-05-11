@@ -85,6 +85,7 @@ class UserDomain(ABCDomain):
             raise DomainError("verification_code_not_found")
         if code_obj.expires_at < datetime.now(tz=code_obj.expires_at.tzinfo):
             raise DomainError("expired_verification_code")
+
         use_verification_code(self.session, code_obj)
 
     def login(
