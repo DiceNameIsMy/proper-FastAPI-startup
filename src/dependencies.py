@@ -22,7 +22,7 @@ import exceptions
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"v{settings.api_version}/login",
-    scopes=settings.auth.scopes.oauth2_format
+    scopes=settings.auth.scopes.oauth2_format  # type: ignore
 )
 jwt_client = JWTClient(
     settings.secret_key,

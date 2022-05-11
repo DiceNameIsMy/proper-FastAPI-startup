@@ -77,7 +77,7 @@ class AuthScopesEnum(Enum):
 
     @classmethod
     @property
-    def oauth2_format(cls) -> dict:
+    def oauth2_format(cls) -> dict[str, str]:
         return {
             name: obj.value
             for name, obj in cls.__members__.items()
