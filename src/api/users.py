@@ -13,31 +13,25 @@ from utils.hashing import IDHasher
 router = APIRouter()
 
 
-@router.get(
-    "/profile",
-    response_model=PublicUserSchema,
-    description="Get to know yourself",
-)
+@router.get("/profile", response_model=PublicUserSchema)
 def get_profile(
     auth: AuthenticatedUserSchema = Security(
         authenticate, scopes=[oauth2_scopes.profile_read.name]
     ),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
+    """Get to know yourself"""
     return id_hasher.encode_obj(auth.user)
 
 
-@router.delete(
-    "/profile",
-    response_model=PublicUserSchema,
-    description="Delete profile",
-)
+@router.delete("/profile", response_model=PublicUserSchema)
 def delete_profile(
     auth: AuthenticatedUserSchema = Security(
         authenticate, scopes=[oauth2_scopes.profile_edit.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
 ):
+    """Delete profile"""
     user_domain.delete(auth.user.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -50,6 +44,7 @@ def get_users(
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
+    """Get users. Only active users retrieved by default"""
     offset = (page - 1) * page_size
     filters = {}
     if active_users:

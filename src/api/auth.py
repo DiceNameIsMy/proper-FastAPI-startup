@@ -70,10 +70,7 @@ async def google_callback(
 
 
 @router.post(
-    "/signup",
-    response_model=SignedUpUserSchema,
-    status_code=status.HTTP_201_CREATED,
-    description="Create user and send verification code to email",
+    "/signup", response_model=SignedUpUserSchema, status_code=status.HTTP_201_CREATED
 )
 async def signup(
     new_user: UserToCreateSchema,
@@ -81,6 +78,7 @@ async def signup(
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
+    """Create user and send verification code to email"""
     try:
         created_user, code, token = user_domain.signup(new_user)
     except DomainError:
@@ -102,11 +100,7 @@ async def signup(
     return SignedUpUserSchema(user=id_hasher.encode_obj(created_user), token=token)
 
 
-@router.post(
-    "/signup/verify",
-    response_model=PublicUserSchema,
-    description="Verify user that has not yet verified his email",
-)
+@router.post("/signup/verify", response_model=PublicUserSchema)
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Security(
@@ -115,6 +109,7 @@ def signup_verify(
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
+    """Verify user that has not yet verified his email"""
     if auth.user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="email_already_verified"
@@ -130,15 +125,12 @@ def signup_verify(
     return id_hasher.encode_obj(auth.user)
 
 
-@router.post(
-    "/login",
-    response_model=TokenSchema,
-    description="Obtain JWT token to access API as authorized user",
-)
+@router.post("/login", response_model=TokenSchema)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     user_domain: UserDomain = Depends(get_user_domain),
 ):
+    """Obtain JWT token to access API as authorized user"""
     try:
         _, token = user_domain.login(
             form_data.username,
@@ -152,16 +144,13 @@ def login(
     return TokenSchema(access_token=token, token_type="bearer")
 
 
-@router.post(
-    "/token/refresh",
-    response_model=TokenSchema,
-    description="Refresh JWT token",
-)
+@router.post("/token/refresh", response_model=TokenSchema)
 def refresh_token(
     token: RefreshTokenSchema,
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: IDHasher = Depends(get_id_hasher),
 ):
+    """Refresh JWT token"""
     try:
         token_data = user_domain.read_token(token.refresh_token)
     except DomainError as e:
