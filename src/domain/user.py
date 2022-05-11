@@ -8,6 +8,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 
 from modules.jwt.client import JWTClient
+from modules.hashid import HashidsClient
+
 from schemas.auth import TokenDataSchema
 
 from settings import settings, oauth2_scopes
@@ -27,13 +29,15 @@ from repository.user import (
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from domain import ABCDomain, DomainError
-from utils.hashing import IDHasher, get_password_hash, verify_password
+from utils.hashing import get_password_hash, verify_password
 
 
 class UserDomain(ABCDomain):
     model = User
 
-    def __init__(self, session: Session, id_hasher: IDHasher, jwt_client: JWTClient):
+    def __init__(
+        self, session: Session, id_hasher: HashidsClient, jwt_client: JWTClient
+    ):
         super().__init__(session, id_hasher)
         self.jwt_client = jwt_client
 

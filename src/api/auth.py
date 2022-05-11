@@ -16,6 +16,8 @@ from settings import settings, oauth2_scopes
 from domain.user import UserDomain
 from domain import DomainError
 
+from modules.hashid import HashidsClient
+
 from dependencies import (
     authenticate,
     get_id_hasher,
@@ -31,7 +33,6 @@ from schemas.auth import (
 )
 from schemas.user import UserToCreateSchema, PublicUserSchema
 from utils.email import send_mail
-from utils.hashing import IDHasher
 import exceptions
 
 
@@ -76,7 +77,7 @@ async def signup(
     new_user: UserToCreateSchema,
     background_tasks: BackgroundTasks,
     user_domain: UserDomain = Depends(get_user_domain),
-    id_hasher: IDHasher = Depends(get_id_hasher),
+    id_hasher: HashidsClient = Depends(get_id_hasher),
 ):
     """Create user and send verification code to email"""
     try:
@@ -107,7 +108,7 @@ def signup_verify(
         authenticate, scopes=[oauth2_scopes.profile_verify.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
-    id_hasher: IDHasher = Depends(get_id_hasher),
+    id_hasher: HashidsClient = Depends(get_id_hasher),
 ):
     """Verify user that has not yet verified his email"""
     if auth.user.is_email_verified:
@@ -148,7 +149,7 @@ def login(
 def refresh_token(
     token: RefreshTokenSchema,
     user_domain: UserDomain = Depends(get_user_domain),
-    id_hasher: IDHasher = Depends(get_id_hasher),
+    id_hasher: HashidsClient = Depends(get_id_hasher),
 ):
     """Refresh JWT token"""
     try:

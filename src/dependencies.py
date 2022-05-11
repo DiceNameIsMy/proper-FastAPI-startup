@@ -16,8 +16,7 @@ from repository.user import get_user_by_id
 from domain.user import UserDomain
 
 from modules.jwt import JWTClient
-
-from utils.hashing import IDHasher, get_hashid
+from modules.hashid import HashidsClient
 
 import exceptions
 
@@ -31,7 +30,7 @@ jwt_client = JWTClient(
     settings.auth.access_expiration,
     settings.auth.algorithm,
 )
-id_hasher = get_hashid(settings.secret_key, min_length=10)
+id_hasher = HashidsClient(settings.secret_key, min_length=10)
 google_sso = GoogleSSO(
     settings.auth.google_client_id,
     settings.auth.google_client_secret,
@@ -53,7 +52,7 @@ def get_jwt_client() -> JWTClient:
     return jwt_client
 
 
-def get_id_hasher() -> IDHasher:
+def get_id_hasher() -> HashidsClient:
     return id_hasher
 
 
@@ -66,7 +65,7 @@ async def authenticate(
     token: str = Depends(oauth2_scheme),
     session: Session = Depends(get_db_session),
     jwt_client: JWTClient = Depends(get_jwt_client),
-    id_hasher: IDHasher = Depends(get_id_hasher),
+    id_hasher: HashidsClient = Depends(get_id_hasher),
 ) -> AuthenticatedUserSchema:
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
@@ -95,7 +94,7 @@ async def authenticate(
 
 def get_user_domain(
     session: Session = Depends(get_db_session),
-    id_hasher: IDHasher = Depends(get_id_hasher),
+    id_hasher: HashidsClient = Depends(get_id_hasher),
     jwt_client: JWTClient = Depends(get_jwt_client),
 ) -> UserDomain:
     return UserDomain(session=session, id_hasher=id_hasher, jwt_client=jwt_client)
