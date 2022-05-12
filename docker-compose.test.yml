@@ -5,7 +5,7 @@ services:
     image: postgres:14-alpine
     container_name: proper-fastapi-startup_test_pg_1
     volumes:
-      - pg_data:/var/lib/postgresql/data/
+      - test_pg_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
@@ -14,4 +14,4 @@ services:
       - 5433:5432
 
 volumes:
-  pg_data:
+  test_pg_data:
