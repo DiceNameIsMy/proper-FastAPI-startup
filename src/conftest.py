@@ -6,6 +6,7 @@ from sqlalchemy.orm.session import Session
 
 from fastapi.testclient import TestClient
 from repository.models import User, VerificationCode
+from repository.user import UserRepository
 
 from settings import settings, oauth2_scope
 from repository.database import SessionLocal, Base
@@ -45,9 +46,14 @@ def db():
 
 
 @pytest.fixture
-def user_domain(db: Session) -> UserDomain:
+def user_repository(db: Session):
+    return UserRepository(session=db)
+
+
+@pytest.fixture
+def user_domain(user_repository: UserRepository) -> UserDomain:
     return UserDomain(
-        session=db,
+        user_repository=user_repository,
         id_hasher=id_hasher,
         pwd_client=pwd_client,
         jwt_client=jwt_client,

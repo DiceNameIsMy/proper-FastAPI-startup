@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import EmailStr
 
-from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -15,18 +14,7 @@ from schemas.auth import TokenDataSchema
 
 from settings import settings, oauth2_scope
 from repository.models import User, VerificationCode
-from repository.user import (
-    create_user,
-    create_user_by_sso_authorization,
-    get_user_by_email,
-    get_user_by_id,
-    get_user_by_sso_authorization,
-    get_users,
-    delete_user,
-    create_verification_code,
-    get_verification_code,
-    use_verification_code,
-)
+from repository.user import UserRepository
 from schemas.user import UserInDbSchema, UserToCreateSchema
 
 from domain import ABCDomain, DomainError
@@ -37,29 +25,30 @@ class UserDomain(ABCDomain):
 
     def __init__(
         self,
-        session: Session,
         id_hasher: HashidsClient,
         pwd_client: PwdClient,
+        user_repository: UserRepository,
         jwt_client: JWTClient,
     ):
-        super().__init__(session, id_hasher, pwd_client)
+        super().__init__(id_hasher, pwd_client)
+        self.repository = user_repository
         self.jwt_client = jwt_client
 
     def get_by_id(self, user_id: int) -> User:
         try:
-            return get_user_by_id(self.session, user_id)
+            return self.repository.get_by_id(user_id)
         except NoResultFound:
             raise DomainError("user_not_found")
 
     def get_by_email(self, email: str) -> User:
         try:
-            return get_user_by_email(self.session, email)
+            return self.repository.get_by_email(email)
         except NoResultFound:
             raise DomainError("user_not_found")
 
     def fetch(self, filters: dict, page: int = 0, page_size: int = 20) -> list[User]:
         offset = page * page_size
-        users = get_users(self.session, offset, page_size, filters)
+        users = self.repository.fetch(filters, offset, page_size)
         return users
 
     def signup(self, new_user: UserToCreateSchema) -> tuple[User, VerificationCode, str]:
@@ -71,10 +60,12 @@ class UserDomain(ABCDomain):
         return user, code, token
 
     def signup_by_sso_provider(
-        self, id: str, name: str, email: EmailStr
+        self, provider_id: str, provider_name: str, email: EmailStr
     ) -> tuple[User, str]:
         try:
-            user = create_user_by_sso_authorization(self.session, id, name, email)
+            user, _ = self.repository.create_user_by_sso_provider(
+                provider_name, provider_id, email
+            )
         except IntegrityError:
             raise DomainError("user_already_exists_or_linked_by_provider")
 
@@ -86,7 +77,7 @@ class UserDomain(ABCDomain):
             user_to_create["password"]
         )
         try:
-            return create_user(self.session, User(**user_to_create))
+            return self.repository.create_user(User(**user_to_create))
         except IntegrityError:
             raise DomainError("user_already_exists")
 
@@ -94,28 +85,28 @@ class UserDomain(ABCDomain):
         pass
 
     def delete(self, user_id: int) -> None:
-        delete_user(self.session, user_id)
+        self.repository.delete_user(user_id)
 
     def create_verification_code(self, user: User) -> VerificationCode:
-        return create_verification_code(
-            self.session, user, settings.auth.verify_email_expiration
+        return self.repository.create_verification_code(
+            user, settings.auth.verify_email_expiration
         )
 
     def verify_email(self, user: UserInDbSchema, code: int):
         try:
-            code_obj = get_verification_code(self.session, user.id, code)
+            code_obj = self.repository.get_verification_code(user.id, code)
         except NoResultFound:
             raise DomainError("verification_code_not_found")
         if code_obj.expires_at < datetime.now(tz=code_obj.expires_at.tzinfo):
             raise DomainError("expired_verification_code")
 
-        use_verification_code(self.session, code_obj)
+        self.repository.use_verification_code(code_obj)
 
     def login(
         self, email: str, password: str, scopes: list[str] = []
     ) -> tuple[User, str]:
         try:
-            user = get_user_by_email(self.session, email)
+            user = self.repository.get_by_email(email)
         except NoResultFound:
             raise DomainError("invalid_credentials")
 
@@ -129,7 +120,7 @@ class UserDomain(ABCDomain):
 
     def login_by_sso_provider(self, id: str, name: str, email: str) -> tuple[User, str]:
         try:
-            user = get_user_by_sso_authorization(self.session, id, name, email)
+            user, _ = self.repository.get_by_sso_provider(id, name, email)
         except NoResultFound:
             raise DomainError("user_not_found")
 

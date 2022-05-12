@@ -2,13 +2,12 @@ import pytest
 
 from requests.models import Response
 
-from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from fastapi.testclient import TestClient
 
 from repository.models import User, VerificationCode
-from repository.user import get_user_by_email, get_verification_code
+from repository.user import UserRepository
 from settings import settings
 
 
@@ -17,7 +16,7 @@ URI = f"/v{settings.api_version}/signup/verify"
 
 def test_valid_code(
     client: TestClient,
-    db: Session,
+    user_repository: UserRepository,
     unverified_user: User,
     unverified_user_signup_token: str,
     unverified_user_verification_code: VerificationCode,
@@ -32,15 +31,15 @@ def test_valid_code(
         },
     )
     assert response.status_code == 200, response.json()
-    assert get_user_by_email(db, unverified_user.email).is_email_verified
+    assert user_repository.get_by_email(unverified_user.email).is_email_verified
 
     with pytest.raises(NoResultFound):
-        get_verification_code(db, unverified_user.id, code)
+        user_repository.get_verification_code(unverified_user.id, code)
 
 
 def test_already_verified(
     client: TestClient,
-    db: Session,
+    user_repository: UserRepository,
     verified_user: User,
     unverified_user_signup_token: str,
     unverified_user_verification_code: VerificationCode,
@@ -55,6 +54,6 @@ def test_already_verified(
         },
     )
     assert response.status_code == 400, response.json()
-    assert get_user_by_email(db, verified_user.email).is_email_verified
+    assert user_repository.get_by_email(verified_user.email).is_email_verified
     with pytest.raises(NoResultFound):
-        get_verification_code(db, verified_user.id, code)
+        user_repository.get_verification_code(verified_user.id, code)
