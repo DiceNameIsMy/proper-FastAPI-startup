@@ -13,7 +13,7 @@ from modules.pwd import PwdClient
 
 from schemas.auth import TokenDataSchema
 
-from settings import settings, oauth2_scopes
+from settings import settings, oauth2_scope
 from repository.models import User, VerificationCode
 from repository.user import (
     create_user,
@@ -66,19 +66,19 @@ class UserDomain(ABCDomain):
         user = self.create(new_user)
         code = self.create_verification_code(user)
         token = self.make_token(
-            user, "verify_email", scopes=[oauth2_scopes.profile_verify.name]
+            user, "verify_email", scopes=[oauth2_scope.profile_verify.name]
         )
         return user, code, token
 
     def signup_by_sso_provider(
-        self, id: str, name: str, email: EmailStr, scopes: list[str] = []
+        self, id: str, name: str, email: EmailStr
     ) -> tuple[User, str]:
         try:
             user = create_user_by_sso_authorization(self.session, id, name, email)
         except IntegrityError:
             raise DomainError("user_already_exists_or_linked_by_provider")
 
-        return user, self.make_token(user, "access", scopes)
+        return user, self.make_token(user, "access", settings.auth.basic_scopes)
 
     def create(self, user: UserToCreateSchema) -> User:
         user_to_create = user.dict()
@@ -127,15 +127,13 @@ class UserDomain(ABCDomain):
 
         return user, self.make_token(user, "access", scopes)
 
-    def login_by_sso_provider(
-        self, id: str, name: str, email: str, scopes: list[str] = []
-    ) -> tuple[User, str]:
+    def login_by_sso_provider(self, id: str, name: str, email: str) -> tuple[User, str]:
         try:
             user = get_user_by_sso_authorization(self.session, id, name, email)
         except NoResultFound:
             raise DomainError("user_not_found")
 
-        return user, self.make_token(user, "access", scopes)
+        return user, self.make_token(user, "access", settings.auth.basic_scopes)
 
     def make_token(self, user: User, type: str, scopes: list[str] = []) -> str:
         try:

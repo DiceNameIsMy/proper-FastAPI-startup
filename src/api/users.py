@@ -6,7 +6,7 @@ from domain.user import UserDomain
 from modules.hashid import HashidsClient
 from schemas.auth import AuthenticatedUserSchema
 from schemas.user import PaginatedUserSchema, PublicUserSchema
-from settings import oauth2_scopes
+from settings import oauth2_scope
 import exceptions
 
 
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get("/profile", response_model=PublicUserSchema)
 def get_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_read.name]
+        authenticate, scopes=[oauth2_scope.profile_read.name]
     ),
     id_hasher: HashidsClient = Depends(get_id_hasher),
 ):
@@ -27,7 +27,7 @@ def get_profile(
 @router.delete("/profile", response_model=PublicUserSchema)
 def delete_profile(
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_edit.name]
+        authenticate, scopes=[oauth2_scope.profile_edit.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
 ):

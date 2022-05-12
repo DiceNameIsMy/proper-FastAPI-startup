@@ -41,10 +41,7 @@ class RedisSettings(BaseSettings):
 
     @property
     def url(self) -> str:
-        return (
-            f"{self.driver}://{self.user}:{self.password}@"
-            f"{self.host}:{self.port}"
-        )
+        return f"{self.driver}://{self.user}:{self.password}@" f"{self.host}:{self.port}"
 
     class Config:
         env_prefix = "API_REDIS_"
@@ -70,30 +67,32 @@ class AuthScopesEnum(Enum):
     profile_verify = "Verify current user"
     token_refresh = "Refresh token"
 
-    @classmethod
-    @property
-    def private_scopes(cls) -> set[str]:
-        return {cls.profile_verify.name, cls.token_refresh.name}
-
-    @classmethod
-    @property
-    def oauth2_format(cls) -> dict[str, str]:
-        return {
-            name: obj.value
-            for name, obj in cls.__members__.items()
-            if name not in cls.private_scopes  # type: ignore
-        }
-
 
 class AuthSettings(BaseSettings):
     algorithm: str = Field("HS256", const=True)
     access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
     verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
-    scopes: type[AuthScopesEnum] = Field(AuthScopesEnum, const=True)
+    scope: type[AuthScopesEnum] = Field(AuthScopesEnum, const=True)
 
     google_client_id: str = ""
     google_client_secret: str = ""
     google_allow_http: bool = True
+
+    @property
+    def private_scopes(cls) -> list[str]:
+        return [cls.scope.profile_verify.name, cls.scope.token_refresh.name]
+
+    @property
+    def basic_scopes(cls) -> list[str]:
+        return [cls.scope.profile_read.name]
+
+    @property
+    def oauth2_scopes_details(cls) -> dict[str, str]:
+        return {
+            name: obj.value
+            for name, obj in cls.scope.__members__.items()
+            if name not in cls.private_scopes  # type: ignore
+        }
 
     class Config:
         env_prefix = "API_AUTH_"
@@ -129,4 +128,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-oauth2_scopes = settings.auth.scopes
+oauth2_scope = settings.auth.scope

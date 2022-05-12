@@ -12,7 +12,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi_sso.sso.google import GoogleSSO
 
-from settings import oauth2_scopes
+from settings import oauth2_scope
 from domain.user import UserDomain
 from domain import DomainError
 
@@ -101,7 +101,7 @@ async def signup(
 def signup_verify(
     verification_code: UserVerificationCodeSchema,
     auth: AuthenticatedUserSchema = Security(
-        authenticate, scopes=[oauth2_scopes.profile_verify.name]
+        authenticate, scopes=[oauth2_scope.profile_verify.name]
     ),
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: HashidsClient = Depends(get_id_hasher),
