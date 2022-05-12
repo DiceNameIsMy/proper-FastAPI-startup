@@ -60,7 +60,7 @@ class UserDomain(ABCDomain):
         return user, code, token
 
     def signup_by_sso_provider(
-        self, provider_id: str, provider_name: str, email: EmailStr
+        self, provider_name: str, provider_id: str, email: EmailStr
     ) -> tuple[User, str]:
         try:
             user, _ = self.repository.create_user_by_sso_provider(

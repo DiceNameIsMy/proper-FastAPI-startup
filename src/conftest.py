@@ -1,4 +1,5 @@
 import contextlib
+from pydantic import EmailStr
 import pytest
 
 from sqlalchemy import MetaData
@@ -101,11 +102,37 @@ def verified_user(
 
 
 @pytest.fixture
+def user_from_sso(user_domain: UserDomain):
+    user, _ = user_domain.signup_by_sso_provider(
+        "faker", "1", EmailStr("sso_user@gmail.com")
+    )
+    return user
+
+
+@pytest.fixture
+def user_auth_token_from_sso(user_from_sso):
+    jwt_client.create_token(
+        sub=id_hasher.encode(user_from_sso.id),
+        exp=settings.auth.access_expiration,
+        scopes=[oauth2_scope.profile_read.name, oauth2_scope.profile_edit.name],
+    )
+
+
+@pytest.fixture
 def user_auth_token(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
         exp=settings.auth.access_expiration,
         scopes=[oauth2_scope.profile_read.name, oauth2_scope.profile_edit.name],
+    )
+
+
+@pytest.fixture
+def user_auth_token_only_profile(verified_user) -> str:
+    return jwt_client.create_token(
+        sub=id_hasher.encode(verified_user.id),
+        exp=settings.auth.access_expiration,
+        scopes=[oauth2_scope.profile_read.name],
     )
 
 

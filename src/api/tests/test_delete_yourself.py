@@ -28,3 +28,21 @@ def test_valid(
     assert response.status_code == 204, response.json()
     with pytest.raises(DomainError):
         user_domain.get_by_id(user_id)
+
+
+def test_not_enough_rights(
+    client: TestClient,
+    user_domain: UserDomain,
+    verified_user: User,
+    user_auth_token_only_profile: str,
+):
+    user_id = verified_user.id
+    response: Response = client.delete(
+        URI,
+        headers={
+            "Content-Type": "Application/json",
+            "Authorization": f"Bearer {user_auth_token_only_profile}",
+        },
+    )
+    assert response.status_code == 401, response.json()
+    assert user_domain.get_by_id(user_id), response.json()

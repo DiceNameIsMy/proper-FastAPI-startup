@@ -131,7 +131,7 @@ async def google_callback(
     except DomainError:
         try:
             _, token = user_domain.signup_by_sso_provider(
-                open_id.id, open_id.provider, open_id.email
+                open_id.provider, open_id.id, open_id.email
             )
         except DomainError as e:
             logger.warning(

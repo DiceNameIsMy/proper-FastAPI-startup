@@ -40,3 +40,11 @@ def test_not_verified_user(client: TestClient, unverified_user: User):
         data={"username": unverified_user.email, "password": "bad_password"},
     )
     assert response.status_code == 401
+
+
+def test_user_from_sso_without_password(client: TestClient, user_from_sso: User):
+    response: Response = client.post(
+        URI,
+        data={"username": user_from_sso.email, "password": "bad_password"},
+    )
+    assert response.status_code == 401
