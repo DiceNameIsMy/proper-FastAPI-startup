@@ -73,7 +73,7 @@ class AuthSettings(BaseSettings):
 
     google_client_id: str = ""
     google_client_secret: str = ""
-    google_allow_http: bool = True
+    google_allow_insecure: bool = True
 
     @property
     def private_scopes(cls) -> list[str]:

@@ -45,7 +45,7 @@ google_sso = GoogleSSO(
     settings.auth.google_client_id,
     settings.auth.google_client_secret,
     f"http://localhost:8000/v{settings.api_version}/google/callback",
-    allow_insecure_http=settings.auth.google_allow_http,
+    allow_insecure_http=settings.auth.google_allow_insecure,
     use_state=False,
 )
 
