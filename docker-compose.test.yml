@@ -1,6 +1,22 @@
 version: "3.8"
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    command: bash -c "cd src/ && alembic upgrade head && while true; do sleep 30; done;"
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - compose/local/.test.env
+    secrets:
+      - api_jwt_private_key
+      - api_jwt_public_key
+    ports:
+      - 8000:8000
+    depends_on:
+      - pg
   pg:
     image: postgres:14-alpine
     container_name: proper-fastapi-startup_test_pg_1
@@ -12,6 +28,12 @@ services:
       - POSTGRES_DB=database
     ports:
       - 5433:5432
+
+secrets:
+  api_jwt_private_key:
+    file: ./jwtRSA256-private.pem
+  api_jwt_public_key:
+    file: ./jwtRSA256-public.pem
 
 volumes:
   test_pg_data:

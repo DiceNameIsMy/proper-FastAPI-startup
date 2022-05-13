@@ -28,9 +28,9 @@ oauth2_scheme = OAuth2PasswordBearer(
     scopes=settings.auth.oauth2_scopes_details,
 )
 jwt_client = JWTClient(
-    settings.secret_key,
-    settings.auth.access_expiration,
-    settings.auth.algorithm,
+    private_key=settings.jwt.private_key,
+    public_key=settings.jwt.public_key,
+    algorithm=settings.jwt.algorithm,
 )
 id_hasher = HashidsClient(settings.secret_key, min_length=10)
 pwd_client = PwdClient()

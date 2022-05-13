@@ -147,6 +147,7 @@ def refresh_token(
     user_domain: UserDomain = Depends(get_user_domain),
     id_hasher: HashidsClient = Depends(get_id_hasher),
 ):
+    # TODO fix accepting token type & exp
     """Refresh JWT token"""
     try:
         token_data = user_domain.read_token(token.refresh_token)

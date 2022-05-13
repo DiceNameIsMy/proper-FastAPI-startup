@@ -83,7 +83,7 @@ def unverified_user_verification_code(
 def unverified_user_signup_token(unverified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(unverified_user.id),
-        exp=settings.auth.verify_email_expiration,
+        exp=settings.jwt.verify_email_exp,
         scopes=[oauth2_scope.profile_verify.name],
     )
 
@@ -113,7 +113,7 @@ def user_from_sso(user_domain: UserDomain):
 def user_auth_token_from_sso(user_from_sso):
     jwt_client.create_token(
         sub=id_hasher.encode(user_from_sso.id),
-        exp=settings.auth.access_expiration,
+        exp=settings.jwt.access_exp,
         scopes=[oauth2_scope.profile_read.name, oauth2_scope.profile_edit.name],
     )
 
@@ -122,7 +122,7 @@ def user_auth_token_from_sso(user_from_sso):
 def user_auth_token(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
-        exp=settings.auth.access_expiration,
+        exp=settings.jwt.access_exp,
         scopes=[oauth2_scope.profile_read.name, oauth2_scope.profile_edit.name],
     )
 
@@ -131,7 +131,7 @@ def user_auth_token(verified_user) -> str:
 def user_auth_token_only_profile(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
-        exp=settings.auth.access_expiration,
+        exp=settings.jwt.access_exp,
         scopes=[oauth2_scope.profile_read.name],
     )
 
@@ -140,6 +140,6 @@ def user_auth_token_only_profile(verified_user) -> str:
 def user_refresh_token(verified_user) -> str:
     return jwt_client.create_token(
         sub=id_hasher.encode(verified_user.id),
-        exp=settings.auth.verify_email_expiration,
+        exp=settings.jwt.verify_email_exp,
         scopes=[oauth2_scope.token_refresh.name],
     )

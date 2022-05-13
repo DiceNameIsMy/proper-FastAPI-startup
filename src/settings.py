@@ -61,7 +61,7 @@ class EmailSettings(BaseSettings):
         env_prefix = "API_EMAIL_"
 
 
-class AuthScopesEnum(Enum):
+class AuthScope(Enum):
     profile_read = "Access current user"
     profile_edit = "Edit current user"
     profile_verify = "Verify current user"
@@ -69,10 +69,7 @@ class AuthScopesEnum(Enum):
 
 
 class AuthSettings(BaseSettings):
-    algorithm: str = Field("HS256", const=True)
-    access_expiration: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
-    verify_email_expiration: timedelta = Field(timedelta(minutes=15), const=True)
-    scope: type[AuthScopesEnum] = Field(AuthScopesEnum, const=True)
+    scope: type[AuthScope] = Field(AuthScope, const=True)
 
     google_client_id: str = ""
     google_client_secret: str = ""
@@ -98,6 +95,19 @@ class AuthSettings(BaseSettings):
         env_prefix = "API_AUTH_"
 
 
+class JWTSettings(BaseSettings):
+    algorithm: str = Field("RS256", const=True)
+    private_key: str = ""
+    public_key: str = ""
+
+    access_exp: timedelta = Field(timedelta(minutes=(60 * 24 * 3)), const=True)
+    verify_email_exp: timedelta = Field(timedelta(minutes=15), const=True)
+
+    class Config:
+        env_prefix = "API_JWT_"
+        secrets_dir = "/var/run/secrets"
+
+
 class Settings(BaseSettings):
     project_name: str = Field("proper-FastAPI-startup", const=True)
     api_version: str = "1"
@@ -118,10 +128,12 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> list[str]:
         return [url for url in self.allowed_origins_str.split("|")]
 
+    # TODO use dsn types instead of classes
     pg = PGSettings()
     redis = RedisSettings()
     email = EmailSettings()
     auth = AuthSettings()
+    jwt = JWTSettings()
 
     class Config:
         env_prefix = "API_"

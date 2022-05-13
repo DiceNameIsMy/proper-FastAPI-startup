@@ -13,6 +13,9 @@ services:
       - ./src:/app/src
     env_file:
       - compose/local/.env
+    secrets:
+      - api_jwt_private_key
+      - api_jwt_public_key
     ports:
       - 8000:8000
     depends_on:
@@ -36,6 +39,12 @@ services:
       - 5432
     ports:
       - 5433:5432
+
+secrets:
+  api_jwt_private_key:
+    file: ./jwtRSA256-private.pem
+  api_jwt_public_key:
+    file: ./jwtRSA256-public.pem
 
 volumes:
   pg_data:
