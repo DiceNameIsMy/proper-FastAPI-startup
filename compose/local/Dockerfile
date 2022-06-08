@@ -1,7 +1,7 @@
 FROM python:3.10.4-slim
 
 # install initial dependencies
-RUN pip install --no-cache --upgrade pip pipenv
+RUN pip install --no-cache-dir --upgrade pip pipenv
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1 \
