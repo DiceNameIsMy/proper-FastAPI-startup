@@ -1,3 +1,6 @@
+# Outdated!
+Currently I do not consider this template as a good one. New revision will be made sometime in the future
+
 # proper-FastAPI-startup
 
 My vision of pretty good FastAPI project template to start with. It features -
